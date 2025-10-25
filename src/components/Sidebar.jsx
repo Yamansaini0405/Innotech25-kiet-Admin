@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { LayoutDashboard, Users, Users2, LogOut, Menu, X } from "lucide-react"
+import { LayoutDashboard, Users, Users2, LogOut, Menu, X, Settings } from "lucide-react"
 
 export default function Sidebar() {
   const navigate = useNavigate()
@@ -13,9 +13,12 @@ export default function Sidebar() {
   }
 
   const menuItems = [
-    // { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: Users, label: "Participants", path: "/users" },
     { icon: Users2, label: "Teams", path: "/teams" },
+    ...(localStorage.getItem("role") === "superadmin"
+      ? [{ icon: Settings, label: "Settings", path: "/settings" }]
+      : []),
   ]
 
   return (
