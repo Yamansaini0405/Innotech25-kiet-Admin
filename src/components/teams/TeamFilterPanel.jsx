@@ -21,6 +21,8 @@ const departmentOptions = [
   "MCA",
   "MBA",
   "B_PHARMA",
+  "M_PHARMA",
+  "D_PHARMA",
   "Other",
 ]
 
