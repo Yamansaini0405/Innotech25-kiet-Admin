@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { LayoutDashboard, Users, Users2, LogOut, Menu, X, Settings } from "lucide-react"
+import { LayoutDashboard, Users, Users2, LogOut, Menu, X, Settings, GraduationCap } from "lucide-react"
 
 export default function Sidebar() {
   const navigate = useNavigate()
@@ -19,6 +19,12 @@ export default function Sidebar() {
     ...(localStorage.getItem("role") === "superadmin"
       ? [{ icon: Settings, label: "Settings", path: "/settings" }]
       : []),
+    ...(localStorage.getItem("role") === "superadmin"
+      ? [{ icon: GraduationCap, label: "Create Judge", path: "/judges" }]
+      : []),
+    ...(localStorage.getItem("role") === "superadmin"
+      ? [{ icon: GraduationCap, label: "Assign Judge", path: "/assign-judge" }]
+      : []),
   ]
 
   return (
@@ -33,9 +39,8 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <div
-        className={`${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:relative w-64 h-screen bg-slate-900 border-r border-slate-700 flex flex-col transition-transform duration-300 z-40`}
+        className={`${isOpen ? "translate-x-0" : "-translate-x-full"
+          } lg:translate-x-0 fixed lg:relative w-64 h-screen bg-slate-900 border-r border-slate-700 flex flex-col transition-transform duration-300 z-40`}
       >
         {/* Logo Section */}
         <div className="pt-6 pb-1 border-b border-slate-700">
@@ -51,20 +56,20 @@ export default function Sidebar() {
               alt="InnoTech"
               className="w-10 h-10 object-contain"
             />
-            
-            
-            
+
+
+
           </div>
           {/* <div className="px-4">
               <h1 className="text-lg font-bold text-white">InnoTech</h1>
               <p className="text-xs text-slate-400">Admin Portal</p>
             </div> */}
-          
+
         </div>
 
         {/* Navigation Menu */}
         <nav className="flex-1 p-4 space-y-2">
-            
+
           {menuItems.map((item) => (
             <button
               key={item.path}
@@ -79,10 +84,10 @@ export default function Sidebar() {
             </button>
           ))}
         </nav>
-         <div className="px-4 mb-2">
-              <h1 className="text-lg font-bold text-white">InnoTech <span className="text-xs text-slate-400">(Admin Portal)</span></h1>
-           
-            </div>  
+        <div className="px-4 mb-2">
+          <h1 className="text-lg font-bold text-white">InnoTech25 <span className="text-xs text-slate-400">(Admin Portal)</span></h1>
+
+        </div>
         {/* Admin Info & Logout */}
         <div className="p-4 border-t border-slate-700 space-y-3">
           <div className="px-4 py-2 bg-slate-800 rounded">

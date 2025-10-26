@@ -24,6 +24,16 @@ const departmentOptions = [
   "Other",
 ]
 
+// NEW: Added category options based on your JSON data
+const categoryOptions = [
+  { id: 1, name: "Smart Solutions, Smarter Society" },
+  { id: 2, name: "AI solutions for automation" },
+  { id: 3, name: "Automation and Robotics" },
+  { id: 4, name: "From Concept to Reality" },
+  { id: 5, name: "Start Small, Scale Big, Sustain Always" },
+  { id: 7, name: "Creative Visions for a Sustainable Future" },
+]
+
 export default function TeamFilterPanel({ teamType, filters, onFilterChange, pagination, onLimitChange }) {
   const [isExpanded, setIsExpanded] = useState(true)
 
@@ -39,12 +49,18 @@ export default function TeamFilterPanel({ teamType, filters, onFilterChange, pag
     onFilterChange({ ...filters, isKeitian: e.target.value })
   }
 
+  // NEW: Handler for the category filter
+  const handleCategoryChange = (e) => {
+    onFilterChange({ ...filters, categoryId: e.target.value })
+  }
+
   const handleLimitChange = (e) => {
     onLimitChange(Number.parseInt(e.target.value))
   }
 
   const handleClearFilters = () => {
-    onFilterChange({ department: "", isCompleted: "", isKeitian: "" })
+    // UPDATED: Added categoryId to the reset
+    onFilterChange({ department: "", isCompleted: "", isKeitian: "", categoryId: "" })
   }
 
   const isCollegeTeam = teamType === "college-inside" || teamType === "college-outside"
@@ -66,7 +82,8 @@ export default function TeamFilterPanel({ teamType, filters, onFilterChange, pag
       {/* Filter Content */}
       {isExpanded && (
         <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* UPDATED: Changed grid columns to better fit 5 items on large screens */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Department Filter - Only for College Teams */}
             {isCollegeTeam && (
               <div>
@@ -78,10 +95,10 @@ export default function TeamFilterPanel({ teamType, filters, onFilterChange, pag
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm "
                 >
                   <option value="">All Departments</option>
-                  {departmentOptions.map(dept => (
-                    <option key={dept} value={dept} >
+                  {departmentOptions.map((dept) => (
+                    <option key={dept} value={dept}>
                       {/* Replace underscores with spaces for readability */}
-                      {dept.replace(/_/g, ' ')}
+                      {dept.replace(/_/g, " ")}
                     </option>
                   ))}
                 </select>
@@ -115,6 +132,23 @@ export default function TeamFilterPanel({ teamType, filters, onFilterChange, pag
                 <option value="">All</option>
                 <option value="true">Completed</option>
                 <option value="false">Pending</option>
+              </select>
+            </div>
+
+            {/* NEW: Category Filter - For All Teams */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Category</label>
+              <select
+                value={filters.categoryId}
+                onChange={handleCategoryChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="">All Categories</option>
+                {categoryOptions.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </div>
 

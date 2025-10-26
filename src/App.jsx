@@ -6,6 +6,8 @@ import UsersPage from './pages/UsersPage'
 import TeamsPage from './pages/TeamsPage'
 import DashboardPage from './pages/Dashboard'
 import SettingsPage from './pages/SettingsPage'
+import JudgesPage from './pages/JudgesPage'
+import AssignJudgePage from './pages/AssignJudgePage'
 
 function App() {
   return (
@@ -19,7 +21,9 @@ function App() {
             <Route path="teams" element={<TeamsPage />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path='settings' element={<SettingsPage />} />
-            <Route path="*" element={<Navigate to="/home" replace />} />
+            <Route path='judges' element={<JudgesPage/>}/>
+            <Route path='assign-judge' element={<AssignJudgePage/>}/>
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout>}
         />
