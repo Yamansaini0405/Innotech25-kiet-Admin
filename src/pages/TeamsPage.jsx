@@ -112,6 +112,7 @@ export default function TeamsPage() {
     department: "",
     isCompleted: "",
     isKeitian: "",
+    categoryId: "",
   })
 
   const currentTeamType = TEAM_TYPES.find((t) => t.id === selectedTeamType)
@@ -132,6 +133,20 @@ export default function TeamsPage() {
       // Add department filter only for college teams
       if ((selectedTeamType === "college-inside" || selectedTeamType === "college-outside") && filters.department) {
         params.append("department", filters.department)
+      }
+      if (filters.isCompleted === "true") {
+        params.append("status", "completed")
+      } else if (filters.isCompleted === "false") {
+        params.append("status", "pending")
+      } else {
+        params.append("status", "all") // Default
+      }
+      if (filters.isKeitian) {
+        params.append("isKeitian", filters.isKeitian)
+      }
+      // NEW: Add the categoryId filter
+      if (filters.categoryId) {
+        params.append("categoryId", filters.categoryId)
       }
       const url = `${baseUrl}/api/admin${currentTeamType.endpoint}?${params.toString()}`
       const response = await fetch(url, {
@@ -163,19 +178,31 @@ export default function TeamsPage() {
     setError(null)
     try {
       // Build params with filters, but without pagination
-      const exportParams = new URLSearchParams()
+      const params = new URLSearchParams()
 
      if ((selectedTeamType === "college-inside" || selectedTeamType === "college-outside") && filters.department) {
         params.append("department", filters.department)
       }
-      if (filters.isCompleted) {
-        params.append("isCompleted", filters.isCompleted)
+      if (filters.isCompleted === "true") {
+        params.append("status", "completed")
+      } else if (filters.isCompleted === "false") {
+        params.append("status", "pending")
+      } else {
+        params.append("status", "all") // Default
       }
       if (filters.isKeitian) {
         params.append("isKeitian", filters.isKeitian)
       }
+      if (filters.categoryId) {
+        params.append("categoryId", filters.categoryId)
+      }
+
+      params.append("page", 1)
+      // If total is 0, send 1 (API will return 0 rows). Otherwise, send the total.
+      params.append("limit", pagination.total > 0 ? pagination.total : 1)
+
       // We omit page/limit to get ALL filtered results
-      const url = `${baseUrl}/api/admin${currentTeamType.endpoint}?${exportParams.toString()}`
+      const url = `${baseUrl}/api/admin${currentTeamType.endpoint}?${params.toString()}`
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -223,7 +250,7 @@ export default function TeamsPage() {
   const handleTeamTypeChange = (teamTypeId) => {
     setSelectedTeamType(teamTypeId)
     setPagination({ page: 1, limit: 20, total: 0, totalPages: 0 })
-    setFilters({ department: "", isCompleted: "", isKeitian: "" })
+    setFilters({ department: "", isCompleted: "", isKeitian: "", categoryId: "" })
   }
 
   const handleFilterChange = (newFilters) => {

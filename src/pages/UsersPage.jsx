@@ -147,6 +147,9 @@ export default function UsersPage() {
             if (filters.userId) exportParams.append("userId", filters.userId)
             if (filters.teamCode) exportParams.append("teamCode", filters.teamCode)
 
+            exportParams.append("page", 1)
+            exportParams.append("limit", pagination.total > 0 ? pagination.total : 1)
+
             // We omit page/limit to get ALL filtered results
             const response = await fetch(`${baseUrl}/api/admin/users?${exportParams.toString()}`, {
                 method: "GET",
@@ -212,23 +215,23 @@ export default function UsersPage() {
                 {/* Filter Panel */}
                 <div className="mb-6 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
                     <FilterPanel filters={filters} onFilterChange={handleFilterChange} />
-                    
-                    
+
+
                 </div>
                 <div className="my-2 flex justify-end">
-                        <button
-                            onClick={handleExport}
-                            disabled={loading || isExporting} // Disable if loading users or exporting
-                            className="flex items-center justify-center px-4 py-2 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                        >
-                            {isExporting ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <Download className="w-4 h-4 mr-2" />
-                            )}
-                            {isExporting ? "Exporting..." : "Export as CSV"}
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleExport}
+                        disabled={loading || isExporting} // Disable if loading users or exporting
+                        className="flex items-center justify-center px-4 py-2 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                        {isExporting ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                            <Download className="w-4 h-4 mr-2" />
+                        )}
+                        {isExporting ? "Exporting..." : "Export as CSV"}
+                    </button>
+                </div>
 
                 {/* Users Table */}
                 <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
