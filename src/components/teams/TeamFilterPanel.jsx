@@ -75,11 +75,11 @@ export default function TeamFilterPanel({ teamType, filters, onFilterChange, pag
                   name="department"
                   value={filters.department}
                   onChange={handleDepartmentChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm "
                 >
                   <option value="">All Departments</option>
                   {departmentOptions.map(dept => (
-                    <option key={dept} value={dept}>
+                    <option key={dept} value={dept} >
                       {/* Replace underscores with spaces for readability */}
                       {dept.replace(/_/g, ' ')}
                     </option>

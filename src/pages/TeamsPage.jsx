@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Loader2 } from "lucide-react"
+import { Search, Loader2, Download } from "lucide-react"
 import TeamFilterPanel from "../components/teams/TeamFilterPanel"
 import TeamsTable from "../components/teams/TeamsTable"
 
@@ -14,10 +14,97 @@ const TEAM_TYPES = [
   { id: "startup", label: "Startup Teams", endpoint: "/teams/startup" },
 ]
 
+const convertToCSV = (data) => {
+  if (data.length === 0) return ""
+
+  // 1. Define the specific headers we want in the CSV
+  const headers = [
+    "Team ID",
+    "Team Name",
+    "Team Code",
+    "Is Keitian",
+    "Team Size",
+    "Department",
+    "Completed",
+    "Leader Name",
+    "Leader Email",
+    "Leader User ID",
+    "Member1 Name",
+    "Member1 Email",
+    "Member2 Name",
+    "Member2 Email",
+    "Member3 Name",
+    "Member3 Email",
+    "Member4 Name",
+    "Member4 Email",
+    "Category",
+    "Problem Statement",
+    "Assigned Judge IDs",
+    "Requests Count",
+    "Created At",
+    "Updated At",
+  ]
+
+  // Helper function to safely escape cells
+  const escapeCell = (cell) => {
+    let strCell = cell === null || cell === undefined ? "" : String(cell)
+    // Handle arrays (like assignedJudgeIds)
+    if (Array.isArray(cell)) {
+      strCell = cell.join(";") // Use semicolon as a separator for lists within a cell
+    }
+
+    if (strCell.includes(",") || strCell.includes('"') || strCell.includes("\n")) {
+      // Escape quotes by doubling them and wrap the whole cell in quotes
+      strCell = `"${strCell.replace(/"/g, '""')}"`
+    }
+    return strCell
+  }
+
+  // 2. Create the header row
+  const headerRow = headers.map(escapeCell).join(",")
+
+  // 3. Map each team object to a flattened row of data
+  const rows = data.map((team) => {
+    // This array must match the order of the 'headers' array above
+    const rowData = [
+      team.id,
+      team.teamName,
+      team.teamCode,
+      team.isKeitian,
+      team.teamSize,
+      team.department,
+      team.isCompleted,
+      team.leaderUser?.name, // Use optional chaining (?.) in case leaderUser is null
+      team.leaderUser?.email,
+      team.leaderUser?.userId,
+      team.member1?.name,
+      team.member1?.email,
+      team.member2?.name,
+      team.member2?.email,
+      team.member3?.name,
+      team.member3?.email,
+      team.member4?.name,
+      team.member4?.email,
+      team.category?.name,
+      team.problemStatement?.title,
+      team.assignedJudgeIds, // The escapeCell function will handle array conversion
+      team.requestsCount,
+      team.createdAt,
+      team.updatedAt,
+    ]
+
+    return rowData.map(escapeCell).join(",")
+  })
+
+  // 4. Join all rows
+  return [headerRow, ...rows].join("\n")
+}
+
 export default function TeamsPage() {
-    const baseUrl = import.meta.env.VITE_BASE_URL
+  const baseUrl = import.meta.env.VITE_BASE_URL
   const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [error, setError] = useState(null)
   const [selectedTeamType, setSelectedTeamType] = useState("college-inside")
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 })
@@ -71,6 +158,68 @@ export default function TeamsPage() {
     }
   }
 
+  const handleExport = async () => {
+    setIsExporting(true)
+    setError(null)
+    try {
+      // Build params with filters, but without pagination
+      const exportParams = new URLSearchParams()
+
+     if ((selectedTeamType === "college-inside" || selectedTeamType === "college-outside") && filters.department) {
+        params.append("department", filters.department)
+      }
+      if (filters.isCompleted) {
+        params.append("isCompleted", filters.isCompleted)
+      }
+      if (filters.isKeitian) {
+        params.append("isKeitian", filters.isKeitian)
+      }
+      // We omit page/limit to get ALL filtered results
+      const url = `${baseUrl}/api/admin${currentTeamType.endpoint}?${exportParams.toString()}`
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (!response.ok) throw new Error("Failed to fetch data for export")
+      const data = await response.json()
+
+      // Assuming the API returns all data in the same { data: [...] } structure
+      const teamsToExport = data.data || []
+
+      if (teamsToExport.length === 0) {
+        setError("No data to export for the current filters.")
+        setIsExporting(false)
+        return
+      }
+
+      // Convert data to CSV
+      const csvData = convertToCSV(teamsToExport)
+
+      // Create blob and trigger download
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" })
+      const link = document.createElement("a")
+      const csvUrl = URL.createObjectURL(blob)
+
+      link.href = csvUrl
+      // Create a dynamic filename
+      link.setAttribute("download", `${selectedTeamType}-teams-${new Date().toISOString().split("T")[0]}.csv`)
+      document.body.appendChild(link)
+      link.click()
+
+      // Clean up
+      document.body.removeChild(link)
+      URL.revokeObjectURL(csvUrl)
+    } catch (err) {
+      setError(err.message)
+      console.error("[v0] Error exporting teams:", err)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   const handleTeamTypeChange = (teamTypeId) => {
     setSelectedTeamType(teamTypeId)
     setPagination({ page: 1, limit: 20, total: 0, totalPages: 0 })
@@ -100,18 +249,17 @@ export default function TeamsPage() {
         </div>
 
         {/* Team Type Selector */}
-       {localStorage.getItem("role")==="superadmin" && ( <div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-slate-200">
+        {localStorage.getItem("role") === "superadmin" && (<div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-slate-200">
           <h2 className="text-sm font-semibold text-slate-700 mb-3">Select Team Type</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
             {TEAM_TYPES.map((teamType) => (
               <button
                 key={teamType.id}
                 onClick={() => handleTeamTypeChange(teamType.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  selectedTeamType === teamType.id
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${selectedTeamType === teamType.id
                     ? "bg-blue-600 text-white shadow-md"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                  }`}
               >
                 {teamType.label}
               </button>
@@ -120,13 +268,29 @@ export default function TeamsPage() {
         </div>)}
 
         {/* Filter Panel */}
-        <TeamFilterPanel
-          teamType={selectedTeamType}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          pagination={pagination}
-          onLimitChange={handleLimitChange}
-        />
+        <div>
+          <TeamFilterPanel
+            teamType={selectedTeamType}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            pagination={pagination}
+            onLimitChange={handleLimitChange}
+          />
+          <div className="my-2 flex justify-end">
+            <button
+              onClick={handleExport}
+              disabled={isExporting || loading} // Disable if loading teams or exporting
+              className="flex items-center justify-center px-4 py-2 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {isExporting ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
+              {isExporting ? "Exporting..." : "Export as CSV"}
+            </button>
+          </div>
+        </div>
 
         {/* Error Message */}
         {error && (
@@ -178,11 +342,10 @@ export default function TeamsPage() {
                     <button
                       key={pageNum}
                       onClick={() => handlePageChange(pageNum)}
-                      className={`px-3 py-1 rounded ${
-                        pagination.page === pageNum
+                      className={`px-3 py-1 rounded ${pagination.page === pageNum
                           ? "bg-blue-600 text-white"
                           : "border border-slate-300 text-slate-700 hover:bg-slate-50"
-                      }`}
+                        }`}
                     >
                       {pageNum}
                     </button>
