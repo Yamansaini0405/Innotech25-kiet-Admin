@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { LayoutDashboard, Users, Users2, LogOut, Menu, X, Settings, GraduationCap } from "lucide-react"
+import { LayoutDashboard, Users, Users2, LogOut, Menu, X, Settings, GraduationCap, PencilLine, Target } from "lucide-react"
 
 export default function Sidebar() {
   const navigate = useNavigate()
@@ -20,10 +20,13 @@ export default function Sidebar() {
       ? [{ icon: Settings, label: "Settings", path: "/settings" }]
       : []),
     ...(localStorage.getItem("role") === "superadmin"
-      ? [{ icon: GraduationCap, label: "Create Judge", path: "/judges" }]
+      ? [{ icon: PencilLine, label: "Create Judge", path: "/judges" }]
       : []),
     ...(localStorage.getItem("role") === "superadmin"
       ? [{ icon: GraduationCap, label: "Assign Judge", path: "/assign-judge" }]
+      : []),
+    ...(localStorage.getItem("role") === "superadmin"
+      ? [{ icon: Target, label: "Unassign team", path: "/unassign-teams" }]
       : []),
   ]
 
@@ -68,7 +71,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-2 space-y-1">
 
           {menuItems.map((item) => (
             <button
