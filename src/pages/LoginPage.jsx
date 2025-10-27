@@ -41,7 +41,7 @@ const handleSubmit = async (e) => {
           localStorage.setItem("role", data.admin.role)
         }
 
-        navigate("/users")
+        navigate("/dashboard")
       } else {
         setError(data.message || "Invalid email or password")
       }
