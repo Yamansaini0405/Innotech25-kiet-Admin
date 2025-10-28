@@ -42,6 +42,7 @@ export default function TeamDetailsModal({ team, onClose }) {
                 <div className="flex items-center gap-2 text-slate-600 text-sm mt-1">
                   <Mail className="w-4 h-4" />
                   {team.leaderUser?.email}
+                  {team.leaderUser?.userId}
                 </div>
                 {team.leaderUser?.phonenumber && (
                   <div className="flex items-center gap-2 text-slate-600 text-sm mt-1">
