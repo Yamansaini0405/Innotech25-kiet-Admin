@@ -33,6 +33,7 @@ const categoryOptions = [
   { id: 3, name: "Automation and Robotics" },
   { id: 4, name: "From Concept to Reality" },
   { id: 5, name: "Start Small, Scale Big, Sustain Always" },
+  { id: 6, name: "Gen Z to Budding Engineers" },
   { id: 7, name: "Creative Visions for a Sustainable Future" },
 ]
 
@@ -86,8 +87,7 @@ export default function TeamFilterPanel({ teamType, filters, onFilterChange, pag
         <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
           {/* UPDATED: Changed grid columns to better fit 5 items on large screens */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Department Filter - Only for College Teams */}
-            {isCollegeTeam && (
+            {localStorage.getItem("role") === "superadmin" && isCollegeTeam && (
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Department</label>
                 <select
