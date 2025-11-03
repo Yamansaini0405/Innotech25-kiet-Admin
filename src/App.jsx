@@ -9,6 +9,7 @@ import SettingsPage from './pages/SettingsPage'
 import JudgesPage from './pages/JudgesPage'
 import AssignJudgePage from './pages/AssignJudgePage'
 import UnassignedTeamsPage from './pages/UnassignedTeamsPage'
+import EvaluatedTeamsPage from './pages/EvaluatedTeamsPage'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path='judges' element={<JudgesPage/>}/>
             <Route path='assign-judge' element={<AssignJudgePage/>}/>
             <Route path='unassign-teams' element={<UnassignedTeamsPage/>}/>
+            <Route path='evaluated-teams' element={<EvaluatedTeamsPage/>}/>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout>}

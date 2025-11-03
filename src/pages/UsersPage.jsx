@@ -204,7 +204,7 @@ export default function UsersPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8 bg-slate-200 p-4 rounded-lg shadow-sm">

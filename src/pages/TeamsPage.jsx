@@ -267,7 +267,7 @@ export default function TeamsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
       <div className="max-w-full mx-auto">
         {/* Header */}
         <div className="mb-8 bg-slate-200 p-4 rounded-lg shadow-sm">

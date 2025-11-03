@@ -28,6 +28,7 @@ export default function Sidebar() {
     ...(localStorage.getItem("role") === "superadmin"
       ? [{ icon: Target, label: "Unassign team", path: "/unassign-teams" }]
       : []),
+      { icon: Users2, label: "Evaluated Teams", path: "/evaluated-teams" }
   ]
 
   return (
