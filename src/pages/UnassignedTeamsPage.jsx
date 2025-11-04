@@ -125,7 +125,7 @@ export default function UnassignedTeamsPage() {
         {/* Message Alert */}
         {message && (
           <div className="mb-6 p-4 rounded-lg border bg-red-50 border-red-200 text-red-800 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <span>{message.text}</span>
           </div>
         )}

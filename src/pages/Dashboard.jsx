@@ -217,7 +217,7 @@ export default function DashboardPage() {
         </div>
 
         {/* --- REGISTRATION SETTINGS SECTION --- */}
-        <div className="mt-8 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+        {localStorage.getItem("role") === "superadmin" && <div className="mt-8 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Registration Settings</h2>
           <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
             <div>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
             </p>
           )}
 
-        </div>
+        </div>}
 
       </div>
     </div>
