@@ -39,10 +39,6 @@ const convertToCSV = (data) => {
     "Member4 Email",
     "Category",
     "Problem Statement",
-    "Assigned Judge IDs",
-    "Requests Count",
-    "Created At",
-    "Updated At",
   ]
 
   // Helper function to safely escape cells
@@ -87,10 +83,6 @@ const convertToCSV = (data) => {
       team.member4?.email,
       team.category?.name,
       team.problemStatement?.title,
-      team.assignedJudgeIds, // The escapeCell function will handle array conversion
-      team.requestsCount,
-      team.createdAt,
-      team.updatedAt,
     ]
 
     return rowData.map(escapeCell).join(",")

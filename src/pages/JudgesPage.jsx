@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { AlertCircle, CheckCircle2, Loader2, Trash2 } from "lucide-react"
 
 export default function JudgesPage() {
@@ -15,6 +15,8 @@ export default function JudgesPage() {
     password: "",
     phonenumber: "",
   })
+
+  const [searchQuery, setSearchQuery] = useState("")
 
   // Fetch judges list
   useEffect(() => {
@@ -56,7 +58,12 @@ export default function JudgesPage() {
     e.preventDefault()
 
     // Validation
-    if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim() || !formData.phonenumber.trim()) {
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.password.trim() ||
+      !formData.phonenumber.trim()
+    ) {
       setMessage({ type: "error", text: "Please fill in all fields" })
       return
     }
@@ -65,7 +72,6 @@ export default function JudgesPage() {
       setSubmitting(true)
       setMessage(null)
 
-      
       const response = await fetch(`${baseUrl}/api/admin/judges`, {
         method: "POST",
         headers: {
@@ -82,7 +88,10 @@ export default function JudgesPage() {
         setFormData({ name: "", email: "", password: "", phonenumber: "" })
         fetchJudges()
       } else {
-        setMessage({ type: "error", text: data.message || "Failed to create judge" })
+        setMessage({
+          type: "error",
+          text: data.message || "Failed to create judge",
+        })
       }
     } catch (error) {
       console.error("Error creating judge:", error)
@@ -91,6 +100,25 @@ export default function JudgesPage() {
       setSubmitting(false)
     }
   }
+
+  const filteredJudges = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim()
+    if (!query) {
+      return judges // Return all judges if search is empty
+    }
+
+    return judges.filter((judge) => {
+      const name = (judge.name || "").toLowerCase()
+      const email = (judge.email || "").toLowerCase()
+      const phonenumber = (judge.phonenumber || "").toLowerCase()
+
+      return (
+        name.includes(query) ||
+        email.includes(query) ||
+        phonenumber.includes(query)
+      )
+    })
+  }, [judges, searchQuery])
 
   if (loading) {
     return (
@@ -105,8 +133,12 @@ export default function JudgesPage() {
       <div className="max-w-full mx-auto">
         {/* Header */}
         <div className="mb-8 bg-slate-200 p-4 rounded-lg shadow-sm">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Judges Management</h1>
-          <p className="text-slate-600">Create and manage judges for your events</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            Judges Management
+          </h1>
+          <p className="text-slate-600">
+            Create and manage judges for your events
+          </p>
         </div>
 
         {/* Message Alert */}
@@ -129,10 +161,18 @@ export default function JudgesPage() {
 
         {/* Create Judge Form */}
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold text-slate-900 mb-6">Create New Judge</h2>
-          <form onSubmit={handleCreateJudge} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h2 className="text-xl font-semibold text-slate-900 mb-6">
+            Create New Judge
+          </h2>
+          <form
+            onSubmit={handleCreateJudge}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-900 mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-slate-900 mb-2"
+              >
                 Name
               </label>
               <input
@@ -148,7 +188,10 @@ export default function JudgesPage() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-900 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-900 mb-2"
+              >
                 Email
               </label>
               <input
@@ -164,7 +207,10 @@ export default function JudgesPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-900 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-900 mb-2"
+              >
                 Password
               </label>
               <input
@@ -180,7 +226,10 @@ export default function JudgesPage() {
             </div>
 
             <div>
-              <label htmlFor="phonenumber" className="block text-sm font-medium text-slate-900 mb-2">
+              <label
+                htmlFor="phonenumber"
+                className="block text-sm font-medium text-slate-900 mb-2"
+              >
                 Phone Number
               </label>
               <input
@@ -216,37 +265,76 @@ export default function JudgesPage() {
 
         {/* Judges Table */}
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-200">
+            <h2 className="text-xl font-semibold text-slate-900 mb-4">
+              Judges
+            </h2>
+            <label htmlFor="search" className="sr-only">
+              Search
+            </label>
+            <input
+              id="search"
+              type="text"
+              placeholder="Search by name, email, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full max-w-md px-3 py-2 border border-slate-300 rounded-md bg-white text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-900 text-white">
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Name</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Email</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Phone Number</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Created At</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
+                   <th className="px-6 py-4 text-left text-sm font-semibold">
+                    SNo.
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Name
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Email
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Phone Number
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Created At
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {judges.length === 0 ? (
+                {filteredJudges.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-8 text-center text-slate-600">
-                      No judges found. Create one to get started.
+                    <td
+                      colSpan="5"
+                      className="px-6 py-8 text-center text-slate-600"
+                    >
+                      {searchQuery
+                        ? "No judges match your search."
+                        : "No judges found. Create one to get started."}
                     </td>
                   </tr>
                 ) : (
-                  judges.map((judge) => (
-                    <tr key={judge.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-slate-900">{judge.name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{judge.email}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{judge.phonenumber}</td>
+                  filteredJudges.map((judge,index) => (
+                    <tr
+                      key={judge.id}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 text-sm font-medium text-slate-900">
+                        {index+1}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-slate-900">
+                        {judge.name}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        {judge.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        {judge.phonenumber}
+                      </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
                         {new Date(judge.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <button className="text-red-600 hover:text-red-800 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </td>
                     </tr>
                   ))
