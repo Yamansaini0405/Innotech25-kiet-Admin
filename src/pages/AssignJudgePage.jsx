@@ -66,13 +66,13 @@ export default function AssignJudgePage() {
   ]
 
   const categoryOptions = [
-    { id: 1, name: "Smart Solutions, Smarter Society" },
-    { id: 2, name: "AI solutions for automation" },
-    { id: 3, name: "Automation and Robotics" },
-    { id: 4, name: "From Concept to Reality" },
-    { id: 5, name: "Start Small, Scale Big, Sustain Always" },
-    { id: 6, name: "Gen Z to Budding Engineers" },
-    { id: 7, name: "Creative Visions for a Sustainable Future" },
+    { id: 1, name: "1. Smart Solutions, Smarter Society" },
+    { id: 2, name: "2. AI solutions for automation" },
+    { id: 3, name: "3. Automation and Robotics" },
+    { id: 4, name: "4. From Concept to Reality" },
+    { id: 5, name: "5. Start Small, Scale Big, Sustain Always" },
+    { id: 6, name: "6. Gen Z to Budding Engineers" },
+    { id: 7, name: "7. Creative Visions for a Sustainable Future" },
   ]
 
   const [selectedDepts, setSelectedDepts] = useState([])
