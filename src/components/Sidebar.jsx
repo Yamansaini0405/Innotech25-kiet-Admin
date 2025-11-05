@@ -73,7 +73,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 p-2 space-y-1">
+        <nav className="flex-1 p-2 space-y-1 overflow-y-scroll no-scrollbar">
 
           {menuItems.map((item) => (
             <button

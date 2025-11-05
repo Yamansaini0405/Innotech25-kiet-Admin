@@ -21,6 +21,12 @@ export default function ExportDataPage() {
     setAdminRole(role)
   }, [])
 
+  useEffect(() => {
+    if (adminRole !== "departmentAdmin") {
+      fetchPanels()
+    }
+  }, [adminRole])
+
   const fetchPanels = async () => {
     try {
       setLoading(true)
@@ -131,9 +137,8 @@ export default function ExportDataPage() {
     let csvContent = "Panel Information\n"
     csvContent += `Panel Name,${panel.panelName}\n`
     csvContent += `Department,"${panel.department.join(", ")}\n`
-    csvContent += `Category ID,${panel.categoryId}\n`
     csvContent += `Total Teams,${teams.length}\n`
-    csvContent += `Total Judges,${judges.length}\n\n`
+    csvContent += `Total Judges,${judges.length}\n`
 
     csvContent += "Judges Information\n"
     csvContent += "Judge Name,Email,Phone Number\n"
@@ -142,9 +147,9 @@ export default function ExportDataPage() {
     })
 
     csvContent += "\n\nTeams Information\n"
-    csvContent += "Team ID,Team Code,Team Name,Department,Leader Name,Leader Email,Category ID\n"
+    csvContent += "Team ID,Team Code,Team Name,Department,Leader Name,Leader Email,Category Name\n"
     teams.forEach((team) => {
-      csvContent += `${team.id},"${team.teamCode}","${team.teamName}","${team.department}","${team.leaderUser.name}","${team.leaderUser.email}",${team.categoryId}\n`
+      csvContent += `${team.id},"${team.teamCode}","${team.teamName}","${team.department}","${team.leaderUser.name}","${team.leaderUser.email}",${team.category.name}\n`
     })
 
     const element = document.createElement("a")
@@ -183,7 +188,7 @@ export default function ExportDataPage() {
           <ExportFilterPanel selectedDepts={selectedDepts} setSelectedDepts={setSelectedDepts} onFetch={fetchPanels} />
         )}
 
-        {adminRole === "deptadmin" && (
+        {adminRole === "departmentAdmin" && (
           <div className="mb-6">
             <button
               onClick={fetchPanels}

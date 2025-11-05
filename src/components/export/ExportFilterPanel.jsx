@@ -4,8 +4,8 @@ import { useState } from "react"
 import { Download, X } from "lucide-react"
 
 const departments = [
-  { value: "CSE,CSE_Cyber_Security", label: "CSE and CSE Cyber Security" },
-  { value: "IT", label: "IT" },
+  { value: "CSE", label: "CSE" },
+  { value: "IT,CSE_Cyber_Security", label: "IT and CSE Cyber Security" },
   { value: "CSIT", label: "CSIT" },
   { value: "CS,CSE_Data_Science", label: "CS and CSE Data Science" },
   { value: "CSE_AI", label: "CSE AI" },
