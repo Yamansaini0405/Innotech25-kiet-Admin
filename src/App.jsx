@@ -10,6 +10,7 @@ import JudgesPage from './pages/JudgesPage'
 import AssignJudgePage from './pages/AssignJudgePage'
 import UnassignedTeamsPage from './pages/UnassignedTeamsPage'
 import EvaluatedTeamsPage from './pages/EvaluatedTeamsPage'
+import ExportDataPage from './pages/ExportDataPage'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path='assign-judge' element={<AssignJudgePage/>}/>
             <Route path='unassign-teams' element={<UnassignedTeamsPage/>}/>
             <Route path='evaluated-teams' element={<EvaluatedTeamsPage/>}/>
+            <Route path='export' element={<ExportDataPage/>}/>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout>}
