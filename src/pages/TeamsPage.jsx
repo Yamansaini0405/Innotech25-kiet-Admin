@@ -22,6 +22,7 @@ const convertToCSV = (data) => {
     "Team ID",
     "Team Name",
     "Team Code",
+    "CategoryId",
     "Is Keitian",
     "Team Size",
     "Department",
@@ -71,6 +72,7 @@ const convertToCSV = (data) => {
       team.id,
       team.teamName,
       team.teamCode,
+      team.categoryId,
       team.isKeitian,
       team.teamSize,
       team.department,
@@ -176,78 +178,98 @@ export default function TeamsPage() {
   }
 
   const handleExport = async () => {
-    setIsExporting(true)
-    setError(null)
-    try {
-      // Build params with filters, but without pagination
-      const params = new URLSearchParams()
+    setIsExporting(true)
+    setError(null)
+    try {
+      // Build params with filters, but without pagination
+      const params = new URLSearchParams()
 
-     if ((selectedTeamType === "college-inside" || selectedTeamType === "college-outside") && filters.department) {
-        params.append("department", filters.department)
-      }
-      if (filters.isCompleted === "true") {
-        params.append("status", "completed")
-      } else if (filters.isCompleted === "false") {
-        params.append("status", "pending")
-      } else {
-        params.append("status", "all") // Default
-      }
-      if (filters.isKeitian) {
-        params.append("isKeitian", filters.isKeitian)
-      }
-      if (filters.categoryId) {
-        params.append("categoryId", filters.categoryId)
-      }
+     if ((selectedTeamType === "college-inside" || selectedTeamType === "college-outside") && filters.department) {
+        params.append("department", filters.department)
+      }
+      if (filters.isCompleted === "true") {
+        params.append("status", "completed")
+      } else if (filters.isCompleted === "false") {
+        params.append("status", "pending")
+      } else {
+        params.append("status", "all") // Default
+      }
+      if (filters.isKeitian) {
+        params.append("isKeitian", filters.isKeitian)
+      }
+      if (filters.categoryId) {
+        params.append("categoryId", filters.categoryId)
+      }
 
-      params.append("page", 1)
-      // If total is 0, send 1 (API will return 0 rows). Otherwise, send the total.
-      params.append("limit", pagination.total > 0 ? pagination.total : 1)
+      params.append("page", 1)
+      // If total is 0, send 1 (API will return 0 rows). Otherwise, send the total.
+      params.append("limit", pagination.total > 0 ? pagination.total : 1)
 
-      // We omit page/limit to get ALL filtered results
-      const url = `${baseUrl}/api/admin${currentTeamType.endpoint}?${params.toString()}`
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        },
-      })
+      // We omit page/limit to get ALL filtered results
+      const url = `${baseUrl}/api/admin${currentTeamType.endpoint}?${params.toString()}`
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      })
 
-      if (!response.ok) throw new Error("Failed to fetch data for export")
-      const data = await response.json()
+      if (!response.ok) throw new Error("Failed to fetch data for export")
+      const data = await response.json()
 
-      // Assuming the API returns all data in the same { data: [...] } structure
-      const teamsToExport = data.data || []
+      // Assuming the API returns all data in the same { data: [...] } structure
+      const teamsToExport = data.data || []
 
-      if (teamsToExport.length === 0) {
-        setError("No data to export for the current filters.")
-        setIsExporting(false)
-        return
-      }
+      // --- START: NEW SORTING LOGIC ---
+      // Sort the data based on your requirement: Category ID, then Team Code
+      teamsToExport.sort((a, b) => {
+        // Get category IDs, default to a large number (Infinity) if category is missing
+        // This ensures teams without categories are sorted last.
+        const categoryIdA = a.category?.id ?? Infinity
+        const categoryIdB = b.category?.id ?? Infinity
 
-      // Convert data to CSV
-      const csvData = convertToCSV(teamsToExport)
+        // 1. Compare category IDs first
+        if (categoryIdA < categoryIdB) return -1
+        if (categoryIdA > categoryIdB) return 1
 
-      // Create blob and trigger download
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" })
-      const link = document.createElement("a")
-      const csvUrl = URL.createObjectURL(blob)
+        // 2. If category IDs are the same, sort by teamCode
+        const teamCodeA = a.teamCode || "" // Default to empty string if missing
+        const teamCodeB = b.teamCode || ""
+        
+        return teamCodeA.localeCompare(teamCodeB) // Use localeCompare for safe string comparison
+      })
+      // --- END: NEW SORTING LOGIC ---
 
-      link.href = csvUrl
-      // Create a dynamic filename
-      link.setAttribute("download", `${selectedTeamType}-teams-${new Date().toISOString().split("T")[0]}.csv`)
-      document.body.appendChild(link)
-      link.click()
+      if (teamsToExport.length === 0) {
+        setError("No data to export for the current filters.")
+        setIsExporting(false)
+        return
+      }
 
-      // Clean up
-      document.body.removeChild(link)
-      URL.revokeObjectURL(csvUrl)
-    } catch (err) {
-      setError(err.message)
-      console.error("[v0] Error exporting teams:", err)
-    } finally {
-      setIsExporting(false)
-    }
-  }
+      // Convert data to CSV (now using the sorted array)
+      const csvData = convertToCSV(teamsToExport)
+
+      // Create blob and trigger download
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" })
+      const link = document.createElement("a")
+      const csvUrl = URL.createObjectURL(blob)
+
+      link.href = csvUrl
+      // Create a dynamic filename
+      link.setAttribute("download", `${selectedTeamType}-teams-${new Date().toISOString().split("T")[0]}.csv`)
+      document.body.appendChild(link)
+      link.click()
+
+      // Clean up
+      document.body.removeChild(link)
+      URL.revokeObjectURL(csvUrl)
+    } catch (err) {
+      setError(err.message)
+      console.error("[v0] Error exporting teams:", err)
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const handleTeamTypeChange = (teamTypeId) => {
     setSelectedTeamType(teamTypeId)
