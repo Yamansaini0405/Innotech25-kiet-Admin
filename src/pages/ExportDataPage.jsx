@@ -22,7 +22,7 @@ export default function ExportDataPage() {
   }, [])
 
   useEffect(() => {
-    if (adminRole !== "departmentAdmin") {
+    if (adminRole !== "superadmin") {
       fetchPanels()
     }
   }, [adminRole])
