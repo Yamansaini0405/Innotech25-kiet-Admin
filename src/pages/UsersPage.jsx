@@ -127,63 +127,59 @@ export default function UsersPage() {
     }, [filters])
 
    const handleExport = async () => {
-    setIsExporting(true)
-    try {
-      const exportParams = new URLSearchParams()
+    setIsExporting(true)
+    try {
+      const url = `${baseUrl}/api/admin/export/user` 
 
-      if (filters.department) exportParams.append("department", filters.department)
-      if (filters.participationCategory) exportParams.append("participationCategory", filters.participationCategory)
-      if (filters.type) exportParams.append("type", filters.type)
-      if (filters.userId) exportParams.append("userId", filters.userId)
-      if (filters.teamCode) exportParams.append("teamCode", filters.teamCode)
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
 
-      exportParams.append("page", 1)
-      exportParams.append("limit", pagination.total > 0 ? pagination.total : 1)
+      const data = await response.json()
+      if (!data.success) throw new Error(data.message || "Failed to fetch data for export")
 
-      const response = await fetch(`${baseUrl}/api/admin/users?${exportParams.toString()}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
+      const usersToExport = data.data || []
 
-      const data = await response.json()
-      if (!data.success) throw new Error(data.message || "Failed to fetch data for export")
+      if (usersToExport.length === 0) {
+        console.warn("No data to export.")
+        setIsExporting(false)
+        return
+      }
 
-      const usersToExport = data.data || []
+      // 2. Apply the year-wise sorting (kept from your previous request)
+      usersToExport.sort((a, b) => {
+        const yearA = a.collegeStudent?.year ?? Infinity
+        const yearB = b.collegeStudent?.year ?? Infinity
+        return yearA - yearB
+      })
 
-      if (usersToExport.length === 0) {
-        console.warn("No data to export for the current filters.")
-        setIsExporting(false)
-        return
-      }
-      usersToExport.sort((a, b) => {
-        const yearA = a.collegeStudent?.year ?? Infinity
-        const yearB = b.collegeStudent?.year ?? Infinity
-        return yearA - yearB
-      })
-      const csvData = convertUsersToCSV(usersToExport)
+      // 3. Convert to CSV (uses the function we updated in the last step)
+      const csvData = convertUsersToCSV(usersToExport)
 
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" })
-      const link = document.createElement("a")
-      const csvUrl = URL.createObjectURL(blob)
+      // 4. Download logic (same as before)
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" })
+      const link = document.createElement("a")
+      const csvUrl = URL.createObjectURL(blob)
 
-      link.href = csvUrl
-      link.setAttribute("download", `users-export-${new Date().toISOString().split("T")[0]}.csv`)
-      document.body.appendChild(link)
-      link.click()
+      link.href = csvUrl
+      link.setAttribute("download", `users-export-${new Date().toISOString().split("T")[0]}.csv`)
+      document.body.appendChild(link)
+      link.click()
 
-      // Clean up
-      document.body.removeChild(link)
-      URL.revokeObjectURL(csvUrl)
-    } catch (err) {
-      console.error("[v0] Error exporting users:", err)
-    } finally {
-      setIsExporting(false)
-    }
-  }
-
+      // Clean up
+      document.body.removeChild(link)
+      URL.revokeObjectURL(csvUrl)
+    } catch (err) {
+      console.error("[v0] Error exporting users:", err)
+      // Optionally set an error state here
+    } finally {
+      setIsExporting(false)
+    }
+  }
     const handleFilterChange = (newFilters) => {
         setFilters({ ...newFilters, page: 1 }) // Reset to page 1 when filters change
     }
