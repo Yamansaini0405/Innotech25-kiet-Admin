@@ -22,7 +22,7 @@ export default function ExportDataPage() {
   }, [])
 
   useEffect(() => {
-    if (adminRole !== "superadmin") {
+    if (localStorage.getItem("role") !== "superadmin") {
       fetchPanels()
     }
   }, [adminRole])
