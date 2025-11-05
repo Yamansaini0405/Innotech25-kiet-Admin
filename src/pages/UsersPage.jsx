@@ -7,33 +7,26 @@ import UsersTable from "../components/users/UsersTable"
 
 const convertUsersToCSV = (data) => {
     if (data.length === 0) return ""
-
-    // 1. Define the headers based on the JSON structure
     const headers = [
-        "User DB ID",
-        "User Public ID",
+        "User ID",
         "Name",
         "Email",
         "Phone Number",
-        "Is Kietian",
         "Participation Category",
         "College",
         "Course",
         "Year",
         "Branch",
         "UID",
-        "Startup Name", // Added for startup (if it exists)
-        "School Name", // Added for schoolStudent (if it exists)
-        "Researcher Institution", // Added for researcher (if it exists)
-        "Created At",
-        "Updated At",
+        "Team Name",
+        "Team Code",
+        "Team Category",
+        "Team Problem Statement",
     ]
 
-    // Helper function to safely escape cells
     const escapeCell = (cell) => {
         let strCell = cell === null || cell === undefined ? "" : String(cell)
         if (strCell.includes(",") || strCell.includes('"') || strCell.includes("\n")) {
-            // Escape quotes by doubling them and wrap the whole cell in quotes
             strCell = `"${strCell.replace(/"/g, '""')}"`
         }
         return strCell
@@ -42,29 +35,27 @@ const convertUsersToCSV = (data) => {
     const headerRow = headers.map(escapeCell).join(",")
 
     const rows = data.map((user) => {
+        const firstTeam = user.teamDetail && user.teamDetail.length > 0 ? user.teamDetail[0] : null
+
         const rowData = [
-            user.id,
             user.userId,
             user.name,
             user.email,
             user.phonenumber,
-            user.isKietian,
             user.participationCategory,
-            user.collegeStudent?.college, // Safely access nested data
+            user.collegeStudent?.college,
             user.collegeStudent?.course,
             user.collegeStudent?.year,
             user.collegeStudent?.branch,
             user.collegeStudent?.uid,
-            user.startup?.name, // Use '?' in case startup is null or has no 'name'
-            user.schoolStudent?.school, // Guessing 'school' field
-            user.researcher?.institution, // Guessing 'institution' field
-            user.createdAt,
-            user.updatedAt,
+            firstTeam?.teamName ?? "NA",
+            firstTeam?.teamCode ?? "NA",
+            firstTeam?.category?.name ?? "NA",
+            firstTeam?.problemStatement?.title ?? "NA",
         ]
 
         return rowData.map(escapeCell).join(",")
     })
-
 
     return [headerRow, ...rows].join("\n")
 }
@@ -135,65 +126,63 @@ export default function UsersPage() {
         fetchUsers()
     }, [filters])
 
-    const handleExport = async () => {
-        setIsExporting(true)
-        try {
-            // Build params with filters, but without pagination
-            const exportParams = new URLSearchParams()
+   const handleExport = async () => {
+    setIsExporting(true)
+    try {
+      const exportParams = new URLSearchParams()
 
-            if (filters.department) exportParams.append("department", filters.department)
-            if (filters.participationCategory) exportParams.append("participationCategory", filters.participationCategory)
-            if (filters.type) exportParams.append("type", filters.type)
-            if (filters.userId) exportParams.append("userId", filters.userId)
-            if (filters.teamCode) exportParams.append("teamCode", filters.teamCode)
+      if (filters.department) exportParams.append("department", filters.department)
+      if (filters.participationCategory) exportParams.append("participationCategory", filters.participationCategory)
+      if (filters.type) exportParams.append("type", filters.type)
+      if (filters.userId) exportParams.append("userId", filters.userId)
+      if (filters.teamCode) exportParams.append("teamCode", filters.teamCode)
 
-            exportParams.append("page", 1)
-            exportParams.append("limit", pagination.total > 0 ? pagination.total : 1)
+      exportParams.append("page", 1)
+      exportParams.append("limit", pagination.total > 0 ? pagination.total : 1)
 
-            // We omit page/limit to get ALL filtered results
-            const response = await fetch(`${baseUrl}/api/admin/users?${exportParams.toString()}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-            })
+      const response = await fetch(`${baseUrl}/api/admin/users?${exportParams.toString()}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
 
-            const data = await response.json()
-            if (!data.success) throw new Error(data.message || "Failed to fetch data for export")
+      const data = await response.json()
+      if (!data.success) throw new Error(data.message || "Failed to fetch data for export")
 
-            const usersToExport = data.data || []
+      const usersToExport = data.data || []
 
-            if (usersToExport.length === 0) {
-                console.warn("No data to export for the current filters.")
-                // You could set an error message here
-                setIsExporting(false)
-                return
-            }
+      if (usersToExport.length === 0) {
+        console.warn("No data to export for the current filters.")
+        setIsExporting(false)
+        return
+      }
+      usersToExport.sort((a, b) => {
+        const yearA = a.collegeStudent?.year ?? Infinity
+        const yearB = b.collegeStudent?.year ?? Infinity
+        return yearA - yearB
+      })
+      const csvData = convertUsersToCSV(usersToExport)
 
-            // Convert data to CSV using our new helper
-            const csvData = convertUsersToCSV(usersToExport)
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" })
+      const link = document.createElement("a")
+      const csvUrl = URL.createObjectURL(blob)
 
-            // Create blob and trigger download
-            const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" })
-            const link = document.createElement("a")
-            const csvUrl = URL.createObjectURL(blob)
+      link.href = csvUrl
+      link.setAttribute("download", `users-export-${new Date().toISOString().split("T")[0]}.csv`)
+      document.body.appendChild(link)
+      link.click()
 
-            link.href = csvUrl
-            link.setAttribute("download", `users-export-${new Date().toISOString().split("T")[0]}.csv`)
-            document.body.appendChild(link)
-            link.click()
-
-            // Clean up
-            document.body.removeChild(link)
-            URL.revokeObjectURL(csvUrl)
-        } catch (err) {
-            console.error("[v0] Error exporting users:", err)
-            // You might want to set an error state here
-        } finally {
-            setIsExporting(false)
-        }
-    }
+      // Clean up
+      document.body.removeChild(link)
+      URL.revokeObjectURL(csvUrl)
+    } catch (err) {
+      console.error("[v0] Error exporting users:", err)
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
     const handleFilterChange = (newFilters) => {
         setFilters({ ...newFilters, page: 1 }) // Reset to page 1 when filters change
