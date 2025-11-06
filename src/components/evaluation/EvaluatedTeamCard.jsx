@@ -78,7 +78,7 @@ export default function EvaluatedTeamCard({ team, onMarkQualified, isMarking, on
             {!team.isDepartmentQualified && (
               <button
                 onClick={onMarkQualified}
-                disabled={isMarking}
+                disabled={isMarking || isNotFullyEvaluated}
                 className="px-4 py-2 bg-green-600 text-white rounded-md font-medium text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
               >
                 {isMarking ? (
