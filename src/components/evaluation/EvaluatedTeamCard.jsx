@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown, CheckCircle2, User, Award, TrendingUp, Eye } from "lucide-react"
+import { ChevronDown, CheckCircle2, User, Award, TrendingUp, Eye, AlertTriangle } from "lucide-react"
 
 export default function EvaluatedTeamCard({ team, onMarkQualified, isMarking, onViewDetails }) {
   const [expandDetails, setExpandDetails] = useState(false)
@@ -17,8 +17,16 @@ export default function EvaluatedTeamCard({ team, onMarkQualified, isMarking, on
       ? calculateAverageFromEvaluations(team.evaluations)
       : Number.parseFloat(team.averageScore || 0).toFixed(2)
 
+  const isNotFullyEvaluated = team.numberofassignedJudges !== team.numberofevaluatedJudges
+
   return (
-    <div className="border border-slate-200 rounded-lg bg-white overflow-hidden hover:border-slate-300 hover:shadow-md transition-all">
+    <div
+      className={`rounded-lg bg-white overflow-hidden transition-all
+        ${
+          "border border-slate-200 hover:border-slate-300 hover:shadow-md" // Default border
+        }
+      `}
+    >
       <div className="p-4 bg-slate-50 border-b border-slate-200">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
@@ -32,7 +40,6 @@ export default function EvaluatedTeamCard({ team, onMarkQualified, isMarking, on
               <span className="text-slate-300">•</span>
               <span className="text-slate-600">Inovation Idea Name: {team.inovationIdeaName}</span>
             </div>
-
 
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
@@ -52,6 +59,19 @@ export default function EvaluatedTeamCard({ team, onMarkQualified, isMarking, on
                 )}
               </div>
             </div>
+
+            {isNotFullyEvaluated && (
+              <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded-md">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-red-700">
+                      Only {team.numberofevaluatedJudges} of {team.numberofassignedJudges} judges have completed their evaluation.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -86,128 +106,7 @@ export default function EvaluatedTeamCard({ team, onMarkQualified, isMarking, on
           </div>
         </div>
       </div>
-
-      {/* <div className="p-4 bg-gray-50 border-b border-slate-200">
-        <div className="flex items-center gap-2 mb-3">
-          <User className="h-4 w-4 text-slate-600" />
-          <h5 className="font-medium text-slate-900">Team Members</h5>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {[team.leaderUser, team.member1, team.member2, team.member3, team.member4]
-            .filter(Boolean)
-            .map((member, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                {member.profileImage && (
-                  <img
-                    src={member.profileImage || "/placeholder.svg"}
-                    alt={member.name}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">{member.name}</p>
-                  <p className="text-xs text-slate-500 truncate">{member.email}</p>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div> */}
-
-      {/* <button
-        onClick={() => setExpandDetails(!expandDetails)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors border-t border-slate-200"
-      >
-        <div className="flex items-center gap-2">
-          <Award className="h-4 w-4 text-slate-600" />
-          <span className="font-medium text-slate-900">Evaluations ({team.evaluations?.length || 0})</span>
-        </div>
-        <ChevronDown className={`h-4 w-4 text-slate-600 transition-transform ${expandDetails ? "rotate-180" : ""}`} />
-      </button> */}
-{/* 
-      {expandDetails && team.evaluations && team.evaluations.length > 0 && (
-        <div className="p-4 space-y-4 bg-gray-50 border-t border-slate-200">
-          {team.evaluations.map((evaluation, idx) => (
-            <div key={evaluation.id} className="border border-slate-200 rounded-lg p-3 bg-white">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="font-medium text-slate-900">Evaluator {idx + 1}</p>
-                  <p className="text-sm text-slate-600">{evaluation.evaluator.name}</p>
-                  <p className="text-xs text-slate-500">{evaluation.evaluator.email}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold text-blue-600">{evaluation.totalScore.toFixed(2)}</p>
-                  <p className="text-xs text-slate-600">/50</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                  <p className="text-xs font-medium text-slate-600">{evaluation.departmentrubric.criterion1}</p>
-                  <p className="text-lg font-semibold text-slate-900">{evaluation.category1TotalScore.toFixed(2)}</p>
-                </div>
-                <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                  <p className="text-xs font-medium text-slate-600">{evaluation.departmentrubric.criterion2}</p>
-                  <p className="text-lg font-semibold text-slate-900">{evaluation.category2TotalScore.toFixed(2)}</p>
-                </div>
-                <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                  <p className="text-xs font-medium text-slate-600">{evaluation.departmentrubric.criterion3}</p>
-                  <p className="text-lg font-semibold text-slate-900">{evaluation.category3TotalScore.toFixed(2)}</p>
-                </div>
-                <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                  <p className="text-xs font-medium text-slate-600">{evaluation.departmentrubric.criterion4}</p>
-                  <p className="text-lg font-semibold text-slate-900">{evaluation.category4TotalScore.toFixed(2)}</p>
-                </div>
-                <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                  <p className="text-xs font-medium text-slate-600">{evaluation.departmentrubric.criterion5}</p>
-                  <p className="text-lg font-semibold text-slate-900">{evaluation.category5TotalScore.toFixed(2)}</p>
-                </div>
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-slate-200">
-                <p className="text-xs font-semibold text-slate-600 mb-2">Sub-Criteria Scores:</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                  <div>
-                    <span className="text-slate-600">{evaluation.departmentrubric.subcriterion11}</span>
-                    <p className="font-semibold text-slate-900">{evaluation.category11Score.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">{evaluation.departmentrubric.subcriterion12}</span>
-                    <p className="font-semibold text-slate-900">{evaluation.category12Score.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">{evaluation.departmentrubric.subcriterion21}</span>
-                    <p className="font-semibold text-slate-900">{evaluation.category21Score.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">{evaluation.departmentrubric.subcriterion22}</span>
-                    <p className="font-semibold text-slate-900">{evaluation.category22Score.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">{evaluation.departmentrubric.subcriterion31}</span>
-                    <p className="font-semibold text-slate-900">{evaluation.category31Score.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">{evaluation.departmentrubric.subcriterion32}</span>
-                    <p className="font-semibold text-slate-900">{evaluation.category32Score.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">{evaluation.departmentrubric.subcriterion41}</span>
-                    <p className="font-semibold text-slate-900">{evaluation.category41Score.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">{evaluation.departmentrubric.subcriterion42}</span>
-                    <p className="font-semibold text-slate-900">{evaluation.category42Score.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-500 mt-2">
-                Evaluated on: {new Date(evaluation.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
-        </div>
-      )} */}
+      
     </div>
   )
 }
