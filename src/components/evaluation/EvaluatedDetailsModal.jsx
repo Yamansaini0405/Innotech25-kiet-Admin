@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, CheckCircle2, Award, User } from "lucide-react"
+import { X, CheckCircle2, Award, User, AlertTriangle, Clock } from "lucide-react"
 
 export default function EvaluatedDetailsModal({ team, onClose, onMarkQualified, isMarking }) {
   const [expandedEvaluations, setExpandedEvaluations] = useState({})
@@ -16,6 +16,8 @@ export default function EvaluatedDetailsModal({ team, onClose, onMarkQualified, 
     team.evaluations && team.evaluations.length > 0
       ? calculateAverageFromEvaluations(team.evaluations)
       : Number.parseFloat(team.averageScore || 0).toFixed(2)
+
+  const isNotFullyEvaluated = team.numberofassignedJudges !== team.numberofevaluatedJudges
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -221,6 +223,29 @@ export default function EvaluatedDetailsModal({ team, onClose, onMarkQualified, 
               )}
             </div>
           </div>
+          {team.notEvaluatedJudges && team.notEvaluatedJudges.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-orange-600" />
+                Pending Evaluations ({team.notEvaluatedJudges.length})
+              </h3>
+              <div className="space-y-3">
+                {team.notEvaluatedJudges.map((judge) => (
+                  <div key={judge.id} className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-slate-900">{judge.name}</p>
+                        <p className="text-sm text-slate-600">{judge.email}</p>
+                      </div>
+                      <span className="text-xs font-medium text-orange-700 bg-orange-100 px-2 py-1 rounded-full">
+                        Pending
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

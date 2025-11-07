@@ -2,8 +2,8 @@
 
 export default function EvaluatedFilterPanel({ filters, setFilters, adminRole }) {
   const departmentOptions = [
-    { value: "CSE,CSE_Cyber_Security", label: "CSE and CSE Cyber Security" },
-    { value: "IT", label: "IT" },
+    { value: "CSE", label: "CSE" },
+    { value: "IT,CSE_Cyber_Security", label: "IT and CSE Cyber Security" },
     { value: "CSIT", label: "CSIT" },
     { value: "CS,CSE_Data_Science", label: "CS and CSE Data Science" },
     { value: "CSE_AI", label: "CSE AI" },
@@ -71,7 +71,7 @@ export default function EvaluatedFilterPanel({ filters, setFilters, adminRole })
         <div>
           <label className="block text-sm font-medium text-slate-900 mb-2">Top Teams</label>
           <div className="flex gap-2">
-            {[3, 5, 10].map((num) => (
+            {[3, 5, 10, 30,100].map((num) => (
               <button
                 key={num}
                 onClick={() => handleTopTeamsChange(filters.topTeams === num ? null : num)}
