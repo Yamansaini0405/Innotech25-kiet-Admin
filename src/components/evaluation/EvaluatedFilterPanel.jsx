@@ -11,7 +11,7 @@ export default function EvaluatedFilterPanel({ filters, setFilters, adminRole })
     { value: "ECE,ECE_VLSI", label: "ECE and ECE VLSI" },
     { value: "ELCE", label: "ELCE" },
     { value: "EEE", label: "EEE or EN" },
-    { value: "ME", label: "ME and AMIA" },
+    { value: "ME,AMIA", label: "ME and AMIA" },
     { value: "MCA", label: "MCA" },
     { value: "MBA", label: "MBA" },
     { value: "B_PHARMA,M_PHARMA,D_PHARMA", label: "B PHARMA and M PHARMA and D PHARMA (KSOP)" },
