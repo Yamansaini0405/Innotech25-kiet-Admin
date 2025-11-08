@@ -54,20 +54,25 @@ export default function EvaluatedTeamsPage() {
         return
       }
 
-      let url = `${baseUrl}/api/admin/result`
+      let url = `${baseUrl}/api/admin/result?`
       const params = new URLSearchParams()
 
+      console.log(filters.department)
       if (adminRole === "superadmin" && filters.department) {
-        params.append("department", filters.department)
+        // params.append("department", filters.department)
+        url += `department=${filters.department}&`
       }
 
       if (filters.topTeams) {
-        params.append("topTeams", filters.topTeams)
+        // params.append("topTeams", filters.topTeams)
+        url += `topTeams=${filters.topTeams}&`
       }
 
-      if (params.toString()) {
-        url += "?" + params.toString()
-      }
+      console.log(params.toString());
+
+      // if (params.toString()) {
+      //   url += "?" + params.toString()
+      // }
 
       const response = await fetch(url, {
         headers: {

@@ -14,7 +14,6 @@ export default function EvaluatedFilterPanel({ filters, setFilters, adminRole })
     { value: "ME,AMIA", label: "ME and AMIA" },
     { value: "MCA", label: "MCA" },
     { value: "MBA", label: "MBA" },
-    { value: "B_PHARMA,M_PHARMA,D_PHARMA", label: "B PHARMA and M PHARMA and D PHARMA (KSOP)" },
     { value: "Other", label: "Other" },
   ]
 
