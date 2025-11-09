@@ -9,11 +9,11 @@ export default function EvaluatedFilterPanel({ filters, setFilters, adminRole })
     { value: "CSE_AI", label: "CSE AI" },
     { value: "CSE_AIML", label: "CSE AIML" },
     { value: "ECE,ECE_VLSI", label: "ECE and ECE VLSI" },
-    { value: "ELCE", label: "ELCE" },
-    { value: "EEE", label: "EEE or EN" },
+    { value: "EEE,ELCE", label: "EEE and ELCE" },
     { value: "ME,AMIA", label: "ME and AMIA" },
     { value: "MCA", label: "MCA" },
     { value: "MBA", label: "MBA" },
+    { value: "B_PHARMA,M_PHARMA,D_PHARMA", label: "B PHARMA and M PHARMA and D PHARMA (KSOP)" },
     { value: "Other", label: "Other" },
   ]
 
