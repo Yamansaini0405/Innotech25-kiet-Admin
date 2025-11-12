@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, CheckCircle2, Award, User, AlertTriangle, Clock } from "lucide-react"
+import { X, CheckCircle2, Award, User, AlertTriangle, Clock, Trash, TrashIcon, Delete } from "lucide-react"
 
 export default function EvaluatedDetailsModal({ team, onClose, onMarkQualified, isMarking }) {
   const [expandedEvaluations, setExpandedEvaluations] = useState({})
@@ -18,6 +18,39 @@ export default function EvaluatedDetailsModal({ team, onClose, onMarkQualified, 
       : Number.parseFloat(team.averageScore || 0).toFixed(2)
 
   const isNotFullyEvaluated = team.numberofassignedJudges !== team.numberofevaluatedJudges
+
+  const handleDelete = async (id) => {
+    try {
+      const password = window.prompt("Enter admin password to confirm delete:")
+      if (!password) return
+
+      // Call delete API: admin/api/evaluation/:evaluationId/:password
+      const token = localStorage.getItem("token")
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/admin/evaluation/${id}/${encodeURIComponent(password)}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        // show error message from API
+        window.alert(data?.message || "Failed to delete evaluation")
+        return
+      }
+
+      // success
+      window.alert(data?.message || "Evaluation deleted successfully")
+      // Optionally close modal or refresh parent
+      if (onClose) onClose()
+    } catch (error) {
+      console.error(error)
+      window.alert(error?.message || "An error occurred")
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -50,7 +83,7 @@ export default function EvaluatedDetailsModal({ team, onClose, onMarkQualified, 
                 <p className="text-xs text-slate-600 mb-1">Average Score</p>
                 <p className="text-2xl font-bold text-blue-600">{averageScore}/50</p>
               </div>
-            
+
             </div>
           </div>
 
@@ -93,23 +126,30 @@ export default function EvaluatedDetailsModal({ team, onClose, onMarkQualified, 
                 team.evaluations.map((evaluation, idx) => (
                   <div key={evaluation.id} className="border border-slate-200 rounded-lg overflow-hidden bg-white">
                     <button
-                      onClick={() =>
-                        setExpandedEvaluations((prev) => ({
-                          ...prev,
-                          [evaluation.id]: !prev[evaluation.id],
-                        }))
-                      }
                       className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
                     >
-                      <div className="flex items-start justify-between flex-1">
-                        <div>
-                          <p className="font-medium text-slate-900">Evaluator {idx + 1}</p>
+                      <div className="flex items-center justify-between flex-1 gap-10 ">
+                        <div className="mr-auto flex justify-start flex-col ">
+                          <p className="font-medium text-slate-900 text-left">Evaluator {idx + 1}</p>
                           <p className="text-sm text-slate-600">{evaluation.evaluator.name}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-semibold text-blue-600">{evaluation.totalScore.toFixed(2)}</p>
-                          <p className="text-xs text-slate-500">/50</p>
+                          <p className="text-lg font-semibold text-blue-600">{evaluation.totalScore.toFixed(2)}/50</p>
                         </div>
+                        <div className="flex gap-3">
+                          <button className="bg-green-600 text-white p-2 px-4 font-bold rounded-xl cursor-pointer hover:bg-green-700 transition-colors" onClick={() =>
+                            setExpandedEvaluations((prev) => ({
+                              ...prev,
+                              [evaluation.id]: !prev[evaluation.id],
+                            }))
+                          }>
+                            Expand
+                          </button>
+                          <button className="bg-red-600 text-white p-2 px-4 font-bold rounded-xl cursor-pointer hover:bg-red-700 transition-colors" onClick={() => handleDelete(evaluation.id)}>
+                            Delete
+                          </button>
+                        </div>
+
                       </div>
                     </button>
 
