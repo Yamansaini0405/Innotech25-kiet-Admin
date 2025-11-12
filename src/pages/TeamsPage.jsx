@@ -134,7 +134,6 @@ export default function TeamsPage() {
         limit: pagination.limit,
       })
 
-      // Add department filter only for college teams
       if ((selectedTeamType === "college-inside" || selectedTeamType === "college-outside") && filters.department) {
         params.append("department", filters.department)
       }

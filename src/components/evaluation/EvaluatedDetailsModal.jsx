@@ -50,28 +50,7 @@ export default function EvaluatedDetailsModal({ team, onClose, onMarkQualified, 
                 <p className="text-xs text-slate-600 mb-1">Average Score</p>
                 <p className="text-2xl font-bold text-blue-600">{averageScore}/50</p>
               </div>
-              <div>
-                <p className="text-xs text-slate-600 mb-1">Status</p>
-                <div className="flex items-center gap-1">
-                  {team.isDepartmentQualified ? (
-                    <span className="flex items-center gap-1 text-sm text-green-600 font-bold">
-                      <CheckCircle2 className="h-5 w-5" />
-                      Qualified
-                    </span>
-                  ) : (
-                    <span className="text-sm text-slate-900 font-bold">Not Qualified</span>
-                  )}
-                </div>
-              </div>
-              {!team.isDepartmentQualified && (
-                <button
-                  onClick={onMarkQualified}
-                  disabled={isMarking}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md font-medium text-sm hover:bg-green-700 transition-colors disabled:opacity-50 h-fit"
-                >
-                  {isMarking ? "Marking..." : "Mark Qualified"}
-                </button>
-              )}
+            
             </div>
           </div>
 
@@ -96,6 +75,7 @@ export default function EvaluatedDetailsModal({ team, onClose, onMarkQualified, 
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-slate-900 truncate">{member.name}</p>
                       <p className="text-xs text-slate-500 truncate">{member.email}</p>
+                      <p className="text-xs text-slate-500 truncate">{member.phonenumber}</p>
                     </div>
                   </div>
                 ))}

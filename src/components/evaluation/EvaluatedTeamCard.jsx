@@ -48,16 +48,7 @@ export default function EvaluatedTeamCard({ team, onMarkQualified, isMarking, on
                   Average Score: <span className="text-blue-600">{averageScore}/50</span>
                 </span>
               </div>
-              <div>
-                {team.isDepartmentQualified ? (
-                  <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Qualified
-                  </span>
-                ) : (
-                  <span className="text-sm text-slate-500">Not Qualified</span>
-                )}
-              </div>
+              
             </div>
 
             {isNotFullyEvaluated && (
@@ -74,28 +65,9 @@ export default function EvaluatedTeamCard({ team, onMarkQualified, isMarking, on
             )}
           </div>
 
-          <div className="flex flex-col gap-2">
-            {!team.isDepartmentQualified && (
-              <button
-                onClick={onMarkQualified}
-                disabled={isMarking || isNotFullyEvaluated}
-                className="px-4 py-2 bg-green-600 text-white rounded-md font-medium text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
-              >
-                {isMarking ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    Marking...
-                  </span>
-                ) : (
-                  "Mark Qualified"
-                )}
-              </button>
-            )}
-            {team.isDepartmentQualified && (
-              <div className="px-4 py-2 bg-green-100 text-green-700 rounded-md text-sm font-medium text-center">
-                ✓ Qualified
-              </div>
-            )}
+          <div className="flex flex-col items-center justify-center gap-2">
+          
+            
             <button
               onClick={onViewDetails}
               className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium text-sm hover:bg-blue-700 transition-colors flex items-center gap-2 justify-center"

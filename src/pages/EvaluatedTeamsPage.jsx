@@ -8,39 +8,58 @@ import EvaluatedDetailsModal from "../components/evaluation/EvaluatedDetailsModa
 
 const TEAMS_PER_PAGE = 8
 
+// Added the categoryOptions you provided
+const categoryOptions = [
+  { id: 1, name: "1. Smart Solutions, Smarter Society" },
+  { id: 2, name: "2. AI solutions for automation" },
+  { id: 3, name: "3. Automation and Robotics" },
+  { id: 4, name: "4. From Concept to Reality" },
+  { id: 5, name: "5. Start Small, Scale Big, Sustain Always" },
+  { id: 6, name: "6. Gen Z to Budding Engineers" },
+  { id: 7, name: "7. Creative Visions for a Sustainable Future" },
+]
+
 export default function EvaluatedTeamsPage() {
   const baseUrl = import.meta.env.VITE_BASE_URL || ""
 
   const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false) // Changed initial loading to false
   const [error, setError] = useState(null)
-  const [adminRole, setAdminRole] = useState(null)
+  
+  // Updated filters state
   const [filters, setFilters] = useState({
-    department: "",
-    topTeams: null,
+    participationCategory: "",
+    category: "",
   })
+
   const [expandedCategories, setExpandedCategories] = useState({})
   const [markingQualified, setMarkingQualified] = useState({})
   const [selectedTeam, setSelectedTeam] = useState(null)
   const [showModal, setShowModal] = useState(false)
 
-  useEffect(() => {
-    const role = localStorage.getItem("role")
-    setAdminRole(role)
-  }, [])
+  // Removed adminRole useEffect
 
+  // Updated fetch logic based on new filters
   useEffect(() => {
-    if (adminRole === "superadmin" && !filters.department) {
+    // 1. Don't fetch if no participation category is selected
+    if (!filters.participationCategory) {
       setCategories([])
       setError(null)
       setLoading(false)
       return
     }
 
-    if (adminRole) {
-      fetchEvaluatedTeams()
+    // 2. If college, wait for innovation category
+    if (filters.participationCategory === "college" && !filters.category) {
+      setCategories([])
+      setError(null)
+      setLoading(false)
+      return
     }
-  }, [filters, adminRole])
+
+    // 3. Fetch if (participationCategory is not college) OR (participationCategory is college AND category is selected)
+    fetchEvaluatedTeams()
+  }, [filters])
 
   const fetchEvaluatedTeams = async () => {
     try {
@@ -54,25 +73,15 @@ export default function EvaluatedTeamsPage() {
         return
       }
 
-      let url = `${baseUrl}/api/admin/result?`
+      // New API endpoint and params
       const params = new URLSearchParams()
+      params.append("participationCategory", filters.participationCategory)
 
-      console.log(filters.department)
-      if (adminRole === "superadmin" && filters.department) {
-        // params.append("department", filters.department)
-        url += `department=${filters.department}&`
+      if (filters.participationCategory === "college" && filters.category) {
+        params.append("categoryId", filters.category)
       }
 
-      if (filters.topTeams) {
-        // params.append("topTeams", filters.topTeams)
-        url += `topTeams=${filters.topTeams}&`
-      }
-
-      console.log(params.toString());
-
-      // if (params.toString()) {
-      //   url += "?" + params.toString()
-      // }
+      let url = `${baseUrl}/api/admin/finalresult?${params.toString()}`
 
       const response = await fetch(url, {
         headers: {
@@ -88,9 +97,31 @@ export default function EvaluatedTeamsPage() {
       const data = await response.json()
 
       if (data.success) {
-        setCategories(data.data)
+
+        const flatTeams = data.data
+        const groupedData = {}
+
+        const categoryNameMap = new Map(categoryOptions.map(cat => [cat.id, cat.name]))
+
+        flatTeams.forEach(team => {
+          const categoryId = team.categoryId
+          
+          if (!groupedData[categoryId]) {
+            groupedData[categoryId] = {
+              categoryId: categoryId,
+              category: categoryNameMap.get(categoryId) || `Unknown Category ${categoryId}`,
+              teams: [] 
+            }
+          }
+          
+          groupedData[categoryId].teams.push(team)
+        })
+
+        const groupedArray = Object.values(groupedData)
+        
+        setCategories(groupedArray)
         const expanded = {}
-        data.data.forEach((cat) => {
+        groupedArray.forEach((cat) => {
           expanded[cat.categoryId] = true
         })
         setExpandedCategories(expanded)
@@ -155,31 +186,6 @@ export default function EvaluatedTeamsPage() {
     setShowModal(true)
   }
 
-  if (!adminRole) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-slate-900">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  const totalTeams = categories.reduce((sum, cat) => sum + (cat.teams?.length || 0), 0)
-  const qualifiedTeams = categories.reduce(
-    (sum, cat) => sum + (cat.teams?.filter((t) => t.isDepartmentQualified).length || 0),
-    0,
-  )
-  const avgScore =
-    categories.length > 0
-      ? (
-          categories.reduce(
-            (sum, cat) => sum + (cat.teams?.reduce((s, t) => s + (Number.parseFloat(t.averageScore) || 0), 0) || 0),
-            0,
-          ) / (totalTeams || 1)
-        ).toFixed(2)
-      : 0
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -188,60 +194,29 @@ export default function EvaluatedTeamsPage() {
           <div className="flex items-center justify-between mb-6 bg-slate-200 p-4 rounded-lg shadow-sm">
             <div>
               <h1 className="text-4xl font-bold text-slate-900 mb-2">Evaluated Teams</h1>
-              <p className="text-slate-600">
-                {adminRole === "superadmin"
-                  ? "Review evaluated team results by department"
-                  : "Review your department's evaluated teams"}
-              </p>
+              <p className="text-slate-600">Review final results by participation category</p>
             </div>
           </div>
 
-          {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                <span className="text-sm text-slate-600">Total Teams</span>
-              </div>
-              <p className="text-3xl font-bold text-slate-900">{totalTeams}</p>
-            </div>
-            <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <Star className="h-5 w-5 text-green-600" />
-                <span className="text-sm text-slate-600">Qualified</span>
-              </div>
-              <p className="text-3xl font-bold text-slate-900">{qualifiedTeams}</p>
-            </div>
-            <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
-                <span className="text-sm text-slate-600">Avg Score</span>
-              </div>
-              <p className="text-3xl font-bold text-slate-900">{avgScore}/50</p>
-            </div>
-            <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="h-5 w-5 text-orange-600" />
-                <span className="text-sm text-slate-600">Categories</span>
-              </div>
-              <p className="text-3xl font-bold text-slate-900">{categories.length}</p>
-            </div>
-          </div> */}
         </div>
 
-        {/* {adminRole === "superadmin" ? (
-          <EvaluatedFilterPanel filters={filters} setFilters={setFilters} adminRole={adminRole} />
-        ) : (
-          <div className="bg-white border border-slate-200 rounded-lg p-4 mb-6 shadow-sm">
-            <p className="text-sm text-slate-600">Filter your department's evaluated teams by top teams ranking</p>
-          </div>
-        )} */}
-        <EvaluatedFilterPanel filters={filters} setFilters={setFilters} adminRole={adminRole} />
-        
+        <EvaluatedFilterPanel 
+          filters={filters} 
+          setFilters={setFilters} 
+          categoryOptions={categoryOptions} 
+        />
 
-        {adminRole === "superadmin" && !filters.department && (
+        {!filters.participationCategory && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-blue-800">Please select a department to view evaluated teams</p>
+            <p className="text-sm text-blue-800">Please select a participation category to view results</p>
+          </div>
+        )}
+        
+        {filters.participationCategory === "college" && !filters.category && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-blue-800">Please select an innovation category to view college results</p>
           </div>
         )}
 
@@ -264,7 +239,7 @@ export default function EvaluatedTeamsPage() {
           </div>
         )}
 
-        {!loading && (
+        {!loading && categories.length > 0 && (
           <div className="space-y-4">
             {categories.map((category) => (
               <div
@@ -317,10 +292,10 @@ export default function EvaluatedTeamsPage() {
           </div>
         )}
 
-        {!loading && categories.every((cat) => cat.teams.length === 0) && categories.length > 0 && (
+        {!loading && !error && categories.length === 0 && filters.participationCategory && (
           <div className="text-center py-12">
             <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600">No evaluated teams found</p>
+            <p className="text-slate-600">No evaluated teams found for the selected filters</p>
           </div>
         )}
       </div>

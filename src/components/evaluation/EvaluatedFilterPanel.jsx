@@ -1,33 +1,26 @@
 "use client"
 
-export default function EvaluatedFilterPanel({ filters, setFilters, adminRole }) {
-  const departmentOptions = [
-    { value: "CSE", label: "CSE" },
-    { value: "IT,CSE_Cyber_Security", label: "IT and CSE Cyber Security" },
-    { value: "CSIT", label: "CSIT" },
-    { value: "CS,CSE_Data_Science", label: "CS and CSE Data Science" },
-    { value: "CSE_AI", label: "CSE AI" },
-    { value: "CSE_AIML", label: "CSE AIML" },
-    { value: "ECE,ECE_VLSI", label: "ECE and ECE VLSI" },
-    { value: "EEE,ELCE", label: "EEE and ELCE" },
-    { value: "ME,AMIA", label: "ME and AMIA" },
-    { value: "MCA", label: "MCA" },
-    { value: "MBA", label: "MBA" },
-    { value: "B_PHARMA,M_PHARMA,D_PHARMA", label: "B PHARMA and M PHARMA and D PHARMA (KSOP)" },
-    { value: "Other", label: "Other" },
+export default function EvaluatedFilterPanel({ filters, setFilters, categoryOptions }) {
+  
+  // Options for the new primary filter
+  const participationCategoryOptions = [
+    { value: "college", label: "College" },
+    { value: "school", label: "School" },
+    { value: "researcher", label: "Researcher" },
+    { value: "startup", label: "Startup" },
   ]
 
-  const handleDepartmentChange = (e) => {
-    setFilters((prev) => ({
-      ...prev,
-      department: e.target.value,
-    }))
+  const handleParticipationCategoryChange = (e) => {
+    setFilters({
+      participationCategory: e.target.value,
+      category: "", // Reset innovation category when participation category changes
+    })
   }
 
-  const handleTopTeamsChange = (value) => {
+  const handleCategoryChange = (e) => {
     setFilters((prev) => ({
       ...prev,
-      topTeams: value === null ? null : value,
+      category: e.target.value,
     }))
   }
 
@@ -46,53 +39,46 @@ export default function EvaluatedFilterPanel({ filters, setFilters, adminRole })
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {adminRole === "superadmin" && (
+        <div>
+          <label htmlFor="participationCategory" className="block text-sm font-medium text-slate-900 mb-2">
+            Participation Category <span className="text-red-600">*</span>
+          </label>
+          <select
+            id="participationCategory"
+            value={filters.participationCategory}
+            onChange={handleParticipationCategoryChange}
+            className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select a Participation Category</option>
+            {participationCategoryOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Conditional filter: Only show if participation category is 'college' */}
+        {filters.participationCategory === "college" && (
           <div>
-            <label className="block text-sm font-medium text-slate-900 mb-2">
-              Department <span className="text-red-600">*</span>
+            <label htmlFor="innovationCategory" className="block text-sm font-medium text-slate-900 mb-2">
+              Innovation Category <span className="text-red-600">*</span>
             </label>
             <select
-              value={filters.department}
-              onChange={handleDepartmentChange}
+              id="innovationCategory"
+              value={filters.category}
+              onChange={handleCategoryChange}
               className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select a Department</option>
-              {departmentOptions.map((dept) => (
-                <option key={dept.value} value={dept.value}>
-                  {dept.label}
+              <option value="">Select an Innovation Category</option>
+              {categoryOptions.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
                 </option>
               ))}
             </select>
-            <p className="text-xs text-slate-600 mt-1">Required - Select a department to view results</p>
           </div>
         )}
-
-        <div>
-          <label className="block text-sm font-medium text-slate-900 mb-2">Top Teams</label>
-          <div className="flex gap-2">
-            {[3, 5, 10, 30,100].map((num) => (
-              <button
-                key={num}
-                onClick={() => handleTopTeamsChange(filters.topTeams === num ? null : num)}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  filters.topTeams === num
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300"
-                }`}
-              >
-                Top {num}
-              </button>
-            ))}
-            {filters.topTeams && (
-              <button
-                onClick={() => handleTopTeamsChange(null)}
-                className="px-3 py-2 rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition-colors"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   )
