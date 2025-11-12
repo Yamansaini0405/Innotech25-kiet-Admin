@@ -48,34 +48,24 @@ const convertTeamsToCSV = (data, categoryOptions) => {
 
 export default function AssignJudgePage() {
   const baseUrl = import.meta.env.VITE_BASE_URL || ""
-  const departments = [
-    { value: "CSE", label: "CSE" },
-    { value: "IT,CSE_Cyber_Security", label: "IT and CSE Cyber Security" },
-    { value: "CSIT", label: "CSIT" },
-    { value: "CS,CSE_Data_Science", label: "CS and CSE Data Science" },
-    { value: "CSE_AI", label: "CSE AI" },
-    { value: "CSE_AIML", label: "CSE AIML" },
-    { value: "ECE,ECE_VLSI", label: "ECE and ECE VLSI" },
-    { value: "ELCE", label: "ELCE" },
-    { value: "EEE", label: "EEE or EN" },
-    { value: "ME,AMIA", label: "ME and AMIA" },
-    { value: "MCA", label: "MCA" },
-    { value: "MBA", label: "MBA" },
-    { value: "B_PHARMA,M_PHARMA,D_PHARMA", label: "B PHARMA and M PHARMA and D PHARMA (KSOP)" },
-    { value: "Other", label: "Other" },
+
+  const participationCategoryOptions = [
+    { value: "college", label: "College" },
+    { value: "school", label: "School" },
+    { value: "researcher", label: "Researcher" },
+    { value: "startup", label: "Startup" },
   ]
 
   const categoryOptions = [
-    { id: 1, name: "1. Smart Solutions, Smarter Society" },
-    { id: 2, name: "2. AI solutions for automation" },
-    { id: 3, name: "3. Automation and Robotics" },
-    { id: 4, name: "4. From Concept to Reality" },
-    { id: 5, name: "5. Start Small, Scale Big, Sustain Always" },
-    { id: 6, name: "6. Gen Z to Budding Engineers" },
-    { id: 7, name: "7. Creative Visions for a Sustainable Future" },
+    { id: 1, name: "Smart Solutions, Smarter Society" },
+    { id: 2, name: "AI solutions for automation" },
+    { id: 3, name: "Automation and Robotics" },
+    { id: 4, name: "From Concept to Reality" },
+    { id: 5, name: "Start Small, Scale Big, Sustain Always" },
+    { id: 7, name: "Creative Visions for a Sustainable Future" },
   ]
 
-  const [selectedDepts, setSelectedDepts] = useState([])
+  const [selectedParticipationCategory, setSelectedParticipationCategory] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("unassign")
   const [teams, setTeams] = useState([])
@@ -96,13 +86,34 @@ export default function AssignJudgePage() {
   }, [])
 
   useEffect(() => {
-    if (selectedDepts.length > 0 && selectedCategory && selectedStatus) {
-      fetchTeams()
-    } else {
+    setSelectedCategory("")
+    setTeams([]) // Clear teams
+    setMessage(null) // Clear messages
+  }, [selectedParticipationCategory])
+
+  useEffect(() => {
+    // Always need participation category and status
+    if (!selectedParticipationCategory || !selectedStatus) {
       setTeams([])
       setMessage(null)
+      return
     }
-  }, [selectedDepts, selectedCategory, selectedStatus])
+
+    // Case 1: College is selected
+    if (selectedParticipationCategory === "college") {
+      if (selectedCategory) {
+        fetchTeams()
+      } else {
+        // College is selected, but category is not yet
+        setTeams([])
+        setMessage(null)
+      }
+    } else {
+      // Case 2: Non-college is selected
+      // Status is already checked, so we can fetch
+      fetchTeams()
+    }
+  }, [selectedParticipationCategory, selectedCategory, selectedStatus]) // Dependencies are correct
 
   const fetchJudges = async () => {
     try {
@@ -122,8 +133,13 @@ export default function AssignJudgePage() {
   }
 
   const fetchTeams = async () => {
-    if (selectedDepts.length === 0 || !selectedCategory || !selectedStatus) {
-      setMessage({ type: "error", text: "Please select departments, category, and status" })
+    // Guard clauses based on the new logic
+    if (!selectedParticipationCategory || !selectedStatus) {
+      setMessage({ type: "error", text: "Please select participation category and status" })
+      return
+    }
+    if (selectedParticipationCategory === "college" && !selectedCategory) {
+      setMessage({ type: "error", text: "Please select an innovation category" })
       return
     }
 
@@ -131,16 +147,20 @@ export default function AssignJudgePage() {
       setLoading(true)
       setMessage(null)
       setTeams([])
-      const deptParam = selectedDepts.join(",")
       const token = localStorage.getItem("token")
-      const response = await fetch(
-        `${baseUrl}/api/admin/getbydepartmentandcategory?department=${deptParam}&categoryId=${selectedCategory}&status=${selectedStatus}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+
+      // Build the URL dynamically
+      let apiUrl = `${baseUrl}/api/admin/getbydepartmentandcategory?participationCategory=${selectedParticipationCategory}&status=${selectedStatus}`
+
+      if (selectedParticipationCategory === "college") {
+        apiUrl += `&categoryId=${selectedCategory}`
+      }
+
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      )
+      })
       const data = await response.json()
 
       if (data.success) {
@@ -159,17 +179,6 @@ export default function AssignJudgePage() {
     }
   }
 
-  const handleDepartmentChange = (e) => {
-    const value = e.target.value
-    if (value && !selectedDepts.includes(value)) {
-      setSelectedDepts([...selectedDepts, value])
-    }
-  }
-
-  const removeDepartment = (dept) => {
-    setSelectedDepts(selectedDepts.filter((d) => d !== dept))
-  }
-
   const handleSelectJudge = (judge) => {
     if (selectedJudges.find((j) => j.id === judge.id)) {
       setSelectedJudges(selectedJudges.filter((j) => j.id !== judge.id))
@@ -185,6 +194,7 @@ export default function AssignJudgePage() {
   }
 
   const handleAssignJudges = async () => {
+    console.log("api called")
     if (selectedJudges.length < 2 || selectedJudges.length > 3) {
       setMessage({ type: "error", text: "Please select 2 or 3 judges" })
       return
@@ -205,10 +215,7 @@ export default function AssignJudgePage() {
       setMessage(null)
 
       const token = localStorage.getItem("token")
-      const deptParam = selectedDepts.join(",")
       const apiUrl = new URL(`${baseUrl}/api/admin/assigjudgebydepartmentandcategory`)
-      apiUrl.searchParams.append("department", deptParam)
-      apiUrl.searchParams.append("categoryId", selectedCategory)
 
       const body = {
         judgeId1: selectedJudges[0].id,
@@ -283,7 +290,7 @@ export default function AssignJudgePage() {
         {/* Header */}
         <div className="mb-8 bg-slate-200 p-4 rounded-lg shadow-sm">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Assign Judges</h1>
-          <p className="text-slate-600">Assign judges to teams by department and category</p>
+          <p className="text-slate-600">Assign judges to teams by participation category and innovation category</p>
         </div>
 
         {/* Message Alert */}
@@ -311,66 +318,44 @@ export default function AssignJudgePage() {
           <h2 className="text-xl font-semibold text-slate-900 mb-6">Select Filters</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label htmlFor="department" className="block text-sm font-medium text-slate-900 mb-2">
-                Department(s)
+              <label htmlFor="participationCategory" className="block text-sm font-medium text-slate-900 mb-2">
+                Participation Category
               </label>
               <select
-                id="department"
-                onChange={handleDepartmentChange}
-                value=""
+                id="participationCategory"
+                value={selectedParticipationCategory}
+                onChange={(e) => setSelectedParticipationCategory(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Add Department</option>
-                {departments
-                  .filter((dept) => !selectedDepts.includes(dept.value))
-                  .map((dept) => (
-                    <option key={dept.value} value={dept.value}>
-                      {dept.label}
-                    </option>
-                  ))}
-              </select>
-              {/* Display selected departments */}
-              {selectedDepts.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedDepts.map((dept) => {
-                    const label = departments.find((d) => d.value === dept)?.label
-                    return (
-                      <div
-                        key={dept}
-                        className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
-                      >
-                        <span>{label}</span>
-                        <button
-                          onClick={() => removeDepartment(dept)}
-                          className="hover:text-blue-600 transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-slate-900 mb-2">
-                Category
-              </label>
-              <select
-                id="category"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Category</option>
-                {categoryOptions.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
+                <option value="">Select Participation Category</option>
+                {participationCategoryOptions.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
                   </option>
                 ))}
               </select>
             </div>
+
+           {selectedParticipationCategory === "college" && (
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-slate-900 mb-2">
+                  Innovation Category
+                </label>
+                <select
+                  id="category"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Category</option>
+                  {categoryOptions.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label htmlFor="status" className="block text-sm font-medium text-slate-900 mb-2">
@@ -595,7 +580,7 @@ export default function AssignJudgePage() {
                             />
                           ) : null}
                         </td>
-                        <td className="px-6 py-4 text-sm font-medium text-slate-900">{index+1}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-900">{index + 1}</td>
                         <td className="px-6 py-4 text-sm font-medium text-slate-900">{team.teamCode}</td>
                         <td className="px-6 py-4 text-sm text-slate-600">{team.teamName}</td>
                         <td className="px-6 py-4 text-sm text-slate-600">{team.department}</td>
