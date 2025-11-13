@@ -35,6 +35,7 @@ export default function TeamsTable({ teams, teamType }) {
                 {isCollegeTeam && (
                   <th className="px-6 py-3 text-left text-xs font-semibold text-white">Department</th>
                 )}
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white">Category Id</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-white">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-white">Actions</th>
               </tr>
@@ -76,6 +77,9 @@ export default function TeamsTable({ teams, teamType }) {
                         <span className="text-sm text-slate-700">{team.department}</span>
                       </td>
                     )}
+                    <td className="px-6 py-4">
+                        <span className="text-sm text-slate-700">{team.categoryId}</span>
+                      </td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { Search, Loader2, Download } from "lucide-react"
 import TeamFilterPanel from "../components/teams/TeamFilterPanel"
 import TeamsTable from "../components/teams/TeamsTable"
+import { AlertCircle, CheckCircle } from "lucide-react";
+
 
 
 const TEAM_TYPES = [
@@ -12,6 +14,13 @@ const TEAM_TYPES = [
   { id: "school", label: "School Teams", endpoint: "/teams/school" },
   { id: "researcher", label: "Researcher Teams", endpoint: "/teams/researcher" },
   { id: "startup", label: "Startup Teams", endpoint: "/teams/startup" },
+]
+
+
+const QulificationType = [
+  { id: "all", label: "All" },
+  { id: "qualified", label: "Qualified" },
+  { id: "not-qualified", label: "Not Qualified" },
 ]
 
 const convertToCSV = (data) => {
@@ -111,6 +120,7 @@ export default function TeamsPage() {
   const [isExporting, setIsExporting] = useState(false)
   const [error, setError] = useState(null)
   const [selectedTeamType, setSelectedTeamType] = useState("college-inside")
+  const [teamQualificationType, setTeamQualificationType] = useState("all")
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 })
   const [filters, setFilters] = useState({
     department: "",
@@ -118,6 +128,8 @@ export default function TeamsPage() {
     isKeitian: "",
     categoryId: "",
   })
+  const [teamCode, setTeamCode] = useState("");
+  const [teamCodeError, setTeamCodeError] = useState(false);
 
   const currentTeamType = TEAM_TYPES.find((t) => t.id === selectedTeamType)
 
@@ -134,6 +146,15 @@ export default function TeamsPage() {
         limit: pagination.limit,
       })
 
+      if (teamQualificationType) {
+        params.append("qulifiedStatus", teamQualificationType)
+      }
+
+      if (teamCode) {
+        params.append("teamCode", teamCode)
+      }
+
+      // Add department filter only for college teams
       if ((selectedTeamType === "college-inside" || selectedTeamType === "college-outside") && filters.department) {
         params.append("department", filters.department)
       }
@@ -186,6 +207,15 @@ export default function TeamsPage() {
      if ((selectedTeamType === "college-inside" || selectedTeamType === "college-outside") && filters.department) {
         params.append("department", filters.department)
       }
+
+      if (teamQualificationType) {
+        params.append("qulifiedStatus", teamQualificationType)
+      }
+
+      if (teamCode) {
+        params.append("teamCode", teamCode)
+      }
+
       if (filters.isCompleted === "true") {
         params.append("status", "completed")
       } else if (filters.isCompleted === "false") {
@@ -206,6 +236,8 @@ export default function TeamsPage() {
 
       // We omit page/limit to get ALL filtered results
       const url = `${baseUrl}/api/admin${currentTeamType.endpoint}?${params.toString()}`
+
+      console.log("Export URL:", url) // Debug log
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -289,6 +321,26 @@ export default function TeamsPage() {
     setPagination((prev) => ({ ...prev, limit: newLimit, page: 1 }))
   }
 
+  const handleChageQualificationType = (qualType) => {
+    setTeamQualificationType(qualType)
+    setPagination({ page: 1, limit: 20, total: 0, totalPages: 0 })
+    setFilters({ department: "", isCompleted: "", isKeitian: "", categoryId: "" })
+  }
+
+  const handleChangeTeamCode = () => {
+    if (
+      teamCode.length === 6 &&
+      ["CL", "SH", "SU", "Rh"].some(prefix => teamCode.split("-")[0].includes(prefix))
+    ) {
+      setPagination({ page: 1, limit: 20, total: 0, totalPages: 0 })
+      setFilters({ department: "", isCompleted: "", isKeitian: "", categoryId: "" })
+    } else {
+      setTeamCodeError(true);
+    }
+
+    console.log(teamCode)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
       <div className="max-w-full mx-auto">
@@ -297,6 +349,59 @@ export default function TeamsPage() {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Team Management</h1>
           <p className="text-slate-600">Manage and view all teams across different categories</p>
         </div>
+
+        {/* Team Type Selector */}
+        {localStorage.getItem("role") === "superadmin" && (
+          <div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-slate-200">
+            <h2 className="text-sm font-semibold text-slate-700 mb-3">
+              Select By Qualification Status
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+              {QulificationType.map((Q) => (
+                <button
+                  key={Q.id}
+                  onClick={() => handleChageQualificationType(Q.id)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${teamQualificationType === Q.id
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                >
+                  {Q.label}
+                </button>
+              ))}
+
+              {/* Team code search input */}
+              <div className="relative flex items-center col-span-2">
+                <Search className="absolute left-3 text-slate-400 w-5 h-5" />
+
+                <input
+                  type="text"
+                  value={teamCode}
+                  onChange={(e) => setTeamCode(e.target.value)}
+                  onBlur={handleChangeTeamCode}
+                  className={`w-full pl-10 pr-10 py-2 rounded-lg border transition-all duration-200 ${teamCodeError
+                      ? "border-red-500 bg-red-50 focus:ring-red-400"
+                      : "border-slate-300 bg-white focus:ring-blue-500"
+                    } focus:outline-none focus:ring-2 shadow-sm`}
+                  placeholder="Search by team code (e.g., CL-1075)"
+                />
+
+                {/* Right-side icon */}
+                {teamCode && !teamCodeError && (
+                  <CheckCircle className="absolute right-3 w-5 h-5 text-green-500" />
+                )}
+                {teamCodeError && (
+                  <AlertCircle className="absolute right-3 w-5 h-5 text-red-500" />
+                )}
+              </div>
+
+              {/* {teamCodeError && (
+                <p className="text-red-500 text-sm mt-1">Invalid team code format</p>
+              )} */}
+            </div>
+          </div>
+        )}
 
         {/* Team Type Selector */}
         {localStorage.getItem("role") === "superadmin" && (<div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-slate-200">
@@ -314,6 +419,7 @@ export default function TeamsPage() {
                 {teamType.label}
               </button>
             ))}
+
           </div>
         </div>)}
 

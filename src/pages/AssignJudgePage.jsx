@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { AlertCircle, CheckCircle2, Loader2, Plus, X, Download } from "lucide-react"
 
-const convertTeamsToCSV = (data, categoryOptions) => {
+const convertTeamsToCSV = (data, categoryOptions, allJudges, status) => {
   if (data.length === 0) return ""
 
   const headers = [
@@ -16,6 +16,11 @@ const convertTeamsToCSV = (data, categoryOptions) => {
     "Leader Name",
     "Leader Email",
   ]
+
+  // If we are exporting assigned teams, add judge and panel columns
+  if (status === "assign") {
+    headers.push("Panel Name", "Assigned Judge 1", "Assigned Judge 2", "Assigned Judge 3")
+  }
 
   const escapeCell = (cell) => {
     let strCell = cell === null || cell === undefined ? "" : String(cell)
@@ -40,6 +45,24 @@ const convertTeamsToCSV = (data, categoryOptions) => {
       team.leaderUser?.name,
       team.leaderUser?.email,
     ]
+
+    // If exporting assigned teams, add the judge and panel info
+    if (status === "assign") {
+      const judgeIds = team.assignedJudgeIds || []
+      const judgeNames = judgeIds.map((id) => {
+        const judge = allJudges.find((j) => j.id === id)
+        return judge ? judge.name : `ID: ${id}` // Fallback if judge not found
+      })
+
+      // Add panel name (will be blank if not present on team object)
+      rowData.push(team.panelName) 
+      
+      // Add judge names
+      rowData.push(judgeNames[0] || "")
+      rowData.push(judgeNames[1] || "")
+      rowData.push(judgeNames[2] || "")
+    }
+
     return rowData.map(escapeCell).join(",")
   })
 
@@ -254,10 +277,11 @@ export default function AssignJudgePage() {
     }
   }
 
-  const handleExport = async () => {
+ const handleExport = async () => {
     try {
       setIsExporting(true)
-      const csvData = convertTeamsToCSV(teams, categoryOptions)
+      // Updated this line to pass judges and selectedStatus
+      const csvData = convertTeamsToCSV(teams, categoryOptions, judges, selectedStatus)
       const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
