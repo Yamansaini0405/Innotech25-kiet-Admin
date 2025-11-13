@@ -26,10 +26,10 @@ function App() {
             <Route path='settings' element={<SettingsPage />} />
             <Route path='judges' element={<JudgesPage/>}/>
             <Route path='assign-judge' element={<AssignJudgePage/>}/>
-            {/* <Route path='unassign-teams' element={<UnassignedTeamsPage/>}/> */}
+            <Route path='unassign-teams' element={<UnassignedTeamsPage/>}/>
             <Route path='evaluated-teams' element={<EvaluatedTeamsPage/>}/>
             {/* <Route path='export' element={<ExportDataPage/>}/> */}
-            <Route path='/evaluate' element={<div>Hello World!!</div>}/>
+            {/* <Route path='/evaluate' element={<div>Hello World!!</div>}/> */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout>}

@@ -25,13 +25,15 @@ export default function Sidebar() {
     ...(localStorage.getItem("role") === "superadmin"
       ? [{ icon: GraduationCap, label: "Assign Judge", path: "/assign-judge" }]
       : []),
-      ...(localStorage.getItem("role") === "superadmin"
-      ? [{ icon: Target, label: "Evaluate", path: "/evaluate" }]
+      // ...(localStorage.getItem("role") === "superadmin"
+      // ? [{ icon: Target, label: "Evaluate", path: "/evaluate" }]
+      // : []),
+    ...(localStorage.getItem("role") === "superadmin"
+      ? [{ icon: Target, label: "Unassign team", path: "/unassign-teams" }]
       : []),
-    // ...(localStorage.getItem("role") === "superadmin"
-    //   ? [{ icon: Target, label: "Unassign team", path: "/unassign-teams" }]
-    //   : []),
-      { icon: Users2, label: "Evaluated Teams", path: "/evaluated-teams" },
+      ...(localStorage.getItem("role") === "superadmin"
+      ? [{ icon: Target, label: "Evaluated Teams", path: "/evaluated-teams" }]
+      : []),
       // { icon: Users2, label: "Export Panel", path: "/export" }
   ]
 
